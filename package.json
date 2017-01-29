@@ -1,18 +1,23 @@
 {
   "name": "etl-cli",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "bin": {
+    "etl": "index.js"
+  },
+  "author": "https://github.com/ZJONSSON",
+  "license": "MIT",
   "dependencies": {
     "bluebird": "~3.4.7",
     "clues": "^3.5.24",
+    "csv-write-stream": "^2.0.0",
     "elasticsearch": "~12.1.3",
     "etl": "~0.3.34",
+    "http-aws-es": "^1.1.3",
     "minimist": "~1.2.0",
     "mongodb": "~2.2.21",
     "nconf": "~0.8.4",
