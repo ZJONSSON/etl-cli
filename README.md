@@ -44,7 +44,7 @@ etl scraper.js elastic/index/type --target_host=localhost:9200
 ```
 
 
-Pipe from one elastic index to another (the mapping will be copied as well)
+Pipe from one elastic index to another (the mapping and settings will be copied as well)
 ```
 etl elastic/test/records elastic/test2/records --target_host=localhost:9200 --source_host=foreignhost.com:9200
 ```
@@ -53,4 +53,4 @@ Reindexing with a different mapping:
 ```
 etl elastic/test/records elastic/test2/records --schema=schema.json --target_host=localhost:9200 --source_host=localhost:9200
 ```
-Where schema.json has a property `elasticMapping` containing the new mapping
+Where schema.json has a property `elastic` containing  `settings` and `mapping` (each one optional)

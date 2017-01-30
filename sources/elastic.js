@@ -22,9 +22,12 @@ module.exports = argv => {
     };
 
   return {
-    elasticMapping: () => {
-      return client.indices.getMapping({index: argv.source_index, type: argv.source_indextype})
-        .then(d => d[argv.source_index].mappings[argv.source_indextype]);
+    elastic: {
+      mapping: () => {
+        return client.indices.getMapping({index: argv.source_index, type: argv.source_indextype})
+          .then(d => d[argv.source_index].mappings[argv.source_indextype]);
+      },
+      settings: () => client.indices.getSettings({index: argv.source_index}).then(d => d[argv.source_index].settings)
     },
     recordCount: () => client.search(payload).then(d => d.hits.total),
     stream: () => etl.elastic.scroll(client,payload)

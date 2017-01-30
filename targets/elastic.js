@@ -3,6 +3,8 @@ const httpAwsEs = require('http-aws-es');
 const Promise = require('bluebird');
 
 module.exports = (stream,argv,schema) => {
+  schema = schema && schema.elastic;
+
   ['target_index','target_indextype']
     .forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
@@ -17,6 +19,11 @@ module.exports = (stream,argv,schema) => {
   // If amazonES parameters are defined, we use the aws connection class
   if (config.amazonES)
     config.connectionClass = httpAwsEs;
+
+  const mapping = Promise.resolve(schema.mapping && typeof schema.mapping === 'function' ? schema.mapping() : schema.mapping)
+    .then(mapping => ({[argv.target_index]: mapping}));
+
+  const settings = Promise.resolve(schema.settings && typeof schema.settings === 'function' ? schema.settings() : schema.settings);
   
   const client = new require('elasticsearch').Client(config);
 
@@ -32,26 +39,28 @@ module.exports = (stream,argv,schema) => {
             e => !argv.silent && console.log(`Delete Index ${indexStr} failed: ${e.message}`)
           );
     })
-    .then( () => {
-      // Ensure the index exists
-      
-      return client.indices.create({index: argv.target_index, type: argv.target_indextype})
-        .then(
-          () => !argv.silent && console.log(`Create Index ${indexStr} successful`),
-          e  => !argv.silent && console.log(`Warning: Index ${indexStr} already exists`)
-        );
-    })
-    .then( () => {
-      if (!schema.elasticMapping) return;
-
-      return Promise.resolve(typeof schema.elasticMapping === 'function' ? schema.elasticMapping() : schema.elasticMapping)
-        .then(mapping =>client.indices.putMapping({
-          index: argv.target_index,
-          type: argv.target_indextype,
-          body: mapping
-        }))
-        .then( () => !argv.silent && console.log(`Put mapping ${indexStr} successful`));
-    })
+    .then(() => Promise.join(settings,mapping, (settings,mapping) => {
+      // Try creating the index with settings and mappings (if defined)
+      return client.indices.create({
+        index: argv.target_index,
+        type: argv.target_indextype,
+        body: {
+          settings: settings,
+          mapping: mapping 
+        }
+      })
+      .then(
+        () => !argv.silent && console.log(`Create Index ${indexStr} successful`),
+        e => {
+          // If index already exists we try to update mapping
+          if (!argv.silent)
+            console.log(`Warning: Index ${indexStr} already exists ${settings && '- settings not updated'}`);
+          if (mapping)
+            return client.indices.putMapping({index: argv.target_index, type: argv.target_indextype, body: mapping})
+              .then( () => !argv.silent && console.log(`Put Mapping ${indexStr} successful`));
+        }
+      );
+    }))
     .then( () => {
       const options = {
         pushErrors: !argv.hide_target_errors,
