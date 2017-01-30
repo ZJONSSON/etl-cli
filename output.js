@@ -88,7 +88,7 @@ module.exports = function(obj,argv) {
   try {
     type = require(path.resolve(__dirname,'targets',type+'.js'));
   } catch(e) {
-    if (e.code === 'MODUdLE_NOT_FOUND')
+    if (e.code === 'MODULE_NOT_FOUND')
       throw 'target_type '+type+' not available';
     else
       throw e;
@@ -102,9 +102,6 @@ module.exports = function(obj,argv) {
       clearInterval(counter);
       if (!argv.silent)
         console.log(`Completed ${Σ} records`);
-    }, e => console.log('error',e));
+    }, e => console.log('error',e))
+    .then(() => setImmediate(() => process.exit()));
 };
-
-if (!module.parent) {
-  require('./source')();
-}
