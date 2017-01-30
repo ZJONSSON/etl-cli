@@ -22,6 +22,10 @@ module.exports = argv => {
     };
 
   return {
+    elasticMapping: () => {
+      return client.indices.getMapping({index: argv.source_index, type: argv.source_indextype})
+        .then(d => d[argv.source_index].mappings[argv.source_indextype]);
+    },
     recordCount: () => client.search(payload).then(d => d.hits.total),
     stream: () => etl.elastic.scroll(client,payload)
   };

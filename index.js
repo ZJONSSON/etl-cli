@@ -9,5 +9,7 @@ const output = require('./output');
 
 module.exports = require('./output');
 
-if (!module.parents)
-  require('./input')();
+if (!module.parents) {
+  const i = input();
+  if (i) output(i.obj,i.argv);
+}

@@ -48,9 +48,6 @@ module.exports = function() {
 
   argv.source = source;
 
-  if (argv.schema_file)
-    argv.schema = require(path.resolve(__dirname,argv.schema));
-
   let stream,type,obj;
 
   // if the source is a node file we require it (optionally defining schema)
@@ -65,7 +62,12 @@ module.exports = function() {
   }
 
   if (!obj.stream)
-    obj = {stream: obj};
+    obj.stream = obj;
+
+  if (argv.schema) {
+    if (!argv.silent) console.log(`Using schema ${argv.schema}`);
+    Object.assign(obj,require(path.resolve('./',argv.schema)));
+  }
 
   if (!argv.silent)
     console.log(`Source: ${source} - type: ${type}`);
@@ -78,6 +80,5 @@ module.exports = function() {
       .then(() => process.exit());
   }
 
-  return output(obj,argv)
-    .then( () => process.exit());
+  return {obj,argv};
 };

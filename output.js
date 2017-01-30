@@ -95,8 +95,8 @@ module.exports = function(obj,argv) {
   }
 
 
-  return type(stream,argv)
-    .pipe(etl.map(d => { if (!argv.silent) console.log(d);}))
+  return type(stream,argv,obj)
+    .pipe(etl.map(d => { if (!argv.silent) console.log(JSON.stringify(d,null,2));}))
     .promise()
     .then(() => {
       clearInterval(counter);
