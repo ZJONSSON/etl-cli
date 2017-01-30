@@ -9,16 +9,8 @@ const Promise = require('bluebird');
 const nconf = require('nconf')
   .file({file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE,'.etlconfig.json')});
 
-module.exports = function() {
-  const argv = minimist(process.argv.slice(2));
-  let source = argv.source;
+module.exports = function(source,argv) {
   
-  // If source is not explicitly defined, we assume its the first argument
-  if (!source) {
-    source = argv._[0];
-    argv._ = argv._.slice(1);
-  }
-
   // If source
   if (source && !source.match('http') && source.match('/')) {
     source = source.split('/');
@@ -70,7 +62,7 @@ module.exports = function() {
   }
 
   if (!argv.silent)
-    console.log(`Source: ${source} - type: ${type}`);
+    console.log(`Source: ${source + (argv.inject ? ' injected' : '')} - type: ${type}`);
 
   if (argv.count) {
     if (!obj.recordCount)
@@ -79,5 +71,5 @@ module.exports = function() {
       .then(d => console.log(`Record count: ${d}`))
       .then(() => process.exit());
   } else
-    return {obj,argv};
+    return obj;
 };
