@@ -40,6 +40,13 @@ module.exports = function(source,argv) {
 
   argv.source = source;
 
+  // Resolve any injections
+  for (let key in argv) {
+    if (key.indexOf('inject_') === 0) {
+      argv[key] = module.exports(argv[key],{inject: true}).stream();
+    }
+  }
+
   let stream,type,obj;
 
   // if the source is a node file we require it (optionally defining schema)
