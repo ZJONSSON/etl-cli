@@ -31,5 +31,9 @@ module.exports = argv => {
     },
     recordCount: () => client.search(payload).then(d => d.hits.total),
     stream: () => etl.elastic.scroll(client,payload)
+      .pipe(etl.map(d => {
+        d._source._id = d._id;
+        return d._source;
+      }))
   };
 };
