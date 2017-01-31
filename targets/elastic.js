@@ -11,7 +11,7 @@ module.exports = (stream,argv,schema) => {
   if (!argv.target_config && !argv.target_host) 
     throw 'target_config or target_host missing';
 
-  let config = Object.assign({},argv.target_config || { host: argv.source_host });
+  let config = Object.assign({},argv.target_host ? { host: argv.target_host } : argv.target_config );
 
   // Collect 100 records by default for bulk indexing
   const out = stream.pipe(etl.collect(argv.collect || 100));

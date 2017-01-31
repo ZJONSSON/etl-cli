@@ -8,7 +8,7 @@ module.exports = argv => {
   if (!argv.source_index)
     throw 'source_index missing';
 
-  let config = Object.assign({},argv.source_config || { host: argv.source_host });
+  let config = Object.assign({},argv.source_host ? { host: argv.source_host } : argv.source_config );
 
   if (config.amazonES)
     config.connectionClass = httpAwsEs;
