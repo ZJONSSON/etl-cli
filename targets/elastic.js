@@ -3,7 +3,7 @@ const httpAwsEs = require('http-aws-es');
 const Promise = require('bluebird');
 
 module.exports = (stream,argv,schema) => {
-  schema = schema && schema.elastic;
+  schema = schema && schema.elastic || {};
 
   ['target_index','target_indextype']
     .forEach(key => { if(!argv[key]) throw `${key} missing`;});
