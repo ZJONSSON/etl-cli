@@ -41,7 +41,7 @@ module.exports = (stream,argv,schema) => {
     })
     .then(() => Promise.join(settings,mapping, (settings,mapping) => {
       // Try creating the index with settings and mappings (if defined)
-      if (settings)
+      if (settings && settings.index)
         ['provided_name','creation_date','uuid', 'version'].forEach(f => delete settings.index[f]);
       if (mapping) {
         mapping[argv.target_indextype] = mapping[argv.source_indextype]
