@@ -1,6 +1,5 @@
 const minimist = require('minimist');
 const etl = require('etl');
-const fs = require('fs');
 const path = require('path');
 const Promise = require('bluebird');
 const nconf = require('nconf').env().file({file: process.env.ETL_CONFIG || '.etlconfig'});
@@ -78,7 +77,6 @@ module.exports = function(obj,argv) {
 
 
   argv.dest = dest;
-  let out;
 
   let m = /\.(json|csv)/.exec(dest);
   let type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';

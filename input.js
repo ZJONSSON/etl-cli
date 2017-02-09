@@ -1,10 +1,6 @@
 #! /usr/bin/env node
 
-const fs = require('fs');
 const path = require('path');
-const minimist = require('minimist');
-const etl = require('etl');
-const output = require('./output');
 const Promise = require('bluebird');
 const nconf = require('nconf')
   .file({file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE,'.etlconfig.json')});
@@ -47,7 +43,7 @@ module.exports = function(source,argv) {
     }
   }
 
-  let stream,type,obj;
+  let type,obj;
 
   // if the source is a node file we require it (optionally defining schema)
   if (/\.js$/.exec(source)) {
