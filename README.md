@@ -54,3 +54,12 @@ Reindexing with a different mapping:
 etl elastic/test/records elastic/test2/records --schema=schema.json --target_host=localhost:9200 --source_host=localhost:9200
 ```
 Where schema.json has a property `elastic` containing  `settings` and `mapping` (each one optional)
+
+Pipe from elastic into S3 (newline delimited json)
+```
+etl elastic/test/records s3/testbucket/records.json --source_host=localhost:9200 --target_accessKeyId=XXXXX --target_secretAccessKey=XXXX
+```
+Pipe from S3 into elastic
+```
+etl s3/testbucket/records.json elastic/test2/records --target_host=localhost:9200 --source_accessKeyId=XXXXX --source_secretAccessKey=XXXX
+```
