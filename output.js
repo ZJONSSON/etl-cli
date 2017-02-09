@@ -2,7 +2,7 @@ const minimist = require('minimist');
 const etl = require('etl');
 const path = require('path');
 const Promise = require('bluebird');
-const nconf = require('nconf').env().file({file: process.env.ETL_CONFIG || '.etlconfig'});
+const nconf = require('nconf');
 
 module.exports = function(obj,argv) {
   argv = Object.assign({},argv || minimist(process.argv.slice(2)));  

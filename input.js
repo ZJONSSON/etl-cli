@@ -2,8 +2,7 @@
 
 const path = require('path');
 const Promise = require('bluebird');
-const nconf = require('nconf')
-  .file({file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE,'.etlconfig.json')});
+const nconf = require('nconf');
 
 module.exports = function(source,argv) {
   
@@ -18,6 +17,7 @@ module.exports = function(source,argv) {
 
   // Load custom config for the source_type or source
   let conf = nconf.get(argv.source_type || source) || {};
+  console.log(argv.source_type,source,conf)
   for (let key in conf)
     argv['source_'+key] = argv['source_'+key] || conf[key];
 
