@@ -21,7 +21,7 @@ module.exports = (stream,argv,schema) => {
     config.connectionClass = httpAwsEs;
 
   const mapping = Promise.resolve(schema.mapping && typeof schema.mapping === 'function' ? schema.mapping() : schema.mapping)
-    .then(mapping => ({[argv.target_indextype]: mapping}));
+    .then(mapping => ({[argv.target_indextype]: mapping || {}}));
 
   const settings = Promise.resolve(schema.settings && typeof schema.settings === 'function' ? schema.settings() : schema.settings);
   
