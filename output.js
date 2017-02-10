@@ -51,7 +51,18 @@ module.exports = function(obj,argv) {
     }, argv.report_interval || 1000);
   }
 
-  const stream = obj.stream(argv).pipe(etl.map(function(d) {
+  let m = /\.(json|csv)/.exec(dest);
+  let type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
+
+  if (!argv.silent)
+    console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''} `);
+
+  let stream = obj.stream(argv);
+
+  if (obj[type] && typeof obj[type].transform === 'function')
+    stream = stream.pipe(etl.map(obj[type].transform));
+
+  stream = stream.pipe(etl.map(function(d) {
     if (argv.setid)
       d._id = d[argv.setid];
 
@@ -78,11 +89,7 @@ module.exports = function(obj,argv) {
 
   argv.dest = dest;
 
-  let m = /\.(json|csv)/.exec(dest);
-  let type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
 
-  if (!argv.silent)
-    console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''} `);
   try {
     type = require(path.resolve(__dirname,'targets',type+'.js'));
   } catch(e) {
