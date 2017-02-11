@@ -54,7 +54,10 @@ module.exports = (stream,argv,schema) => {
       .then(
         () => !argv.silent && console.log(`Create Index ${indexStr} successful`),
         e => {
-          if (e.message && e.message.indexOf('IndexAlreadyExistsException') === -1)
+          if (e.message && 
+            (e.message.indexOf('IndexAlreadyExistsException') === -1) && 
+            (e.message.indexOf('index_already_exists_exception') === -1)
+          )
             throw e;
           
           // If index already exists we try to update mapping
