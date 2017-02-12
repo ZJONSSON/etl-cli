@@ -84,7 +84,7 @@ module.exports = function(obj,argv) {
 
     if (!argv.limit || Σ <= argv.limit)
       return d;
-  }));
+  },{highWaterMark: argv.highWaterMark || 100}));
 
 
   argv.dest = dest;
