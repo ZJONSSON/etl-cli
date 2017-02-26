@@ -13,6 +13,9 @@ module.exports = require('./output');
 if (!module.parents) {
   const argv = minimist(process.argv.slice(2));
   let source = argv.source;
+
+  // expose nconf in the argv
+  argv.nconf = nconf;
   
   // If source is not explicitly defined, we assume its the first argument
   if (!source) {
