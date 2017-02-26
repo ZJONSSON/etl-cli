@@ -1,4 +1,4 @@
-#! /usr/bin/env node
+#! /usr/bin/node --expose-gc
 const path = require('path');
 const minimist = require('minimist');
 const nconf = require('nconf')
