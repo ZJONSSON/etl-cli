@@ -72,7 +72,8 @@ module.exports = (stream,argv,schema) => {
     .then( () => {
       const options = {
         pushErrors: !argv.hide_target_errors,
-        concurrency: argv.target_concurrency || 5
+        concurrency: argv.target_concurrency || 5,
+        maxRetries: argv.max_retries || 0,
       };
 
       if (argv.update)
