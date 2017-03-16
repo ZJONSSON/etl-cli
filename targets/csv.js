@@ -30,11 +30,20 @@ module.exports = function(stream,argv) {
   }
 
 
-  return stream.pipe(etl.map(function(d) {
+  let _stream = stream.pipe(etl.map(function(d) {
     headers = headers || getHeaders(d);
     return flattenData(headers,d);
   }))
-  .pipe(csvWriter())
-  .pipe(argv.source === 'screen' ? etl.map(d => console.log(d)) : etl.toFile(argv.dest));
-  
+  .pipe(csvWriter());
+
+  const outStream =  stream => {
+    if(argv.target_gzip){
+      let gz = require('zlib').createGzip();
+      return stream.pipe(gz);
+    } else
+      return stream;
+  }
+
+  return outStream(_stream).pipe(argv.source === 'screen' ? etl.map(d => console.log(d)) : etl.toFile(argv.dest));
+
 };
