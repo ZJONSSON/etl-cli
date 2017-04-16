@@ -21,7 +21,7 @@ module.exports = function(obj,argv) {
     dest = dest[0];
   }
 
-  argv.target_gzip = dest.match(/\.gz$/ig);
+  argv.target_gzip = dest && dest.match(/\.gz$/ig);
 
   // Load custom config for the target_type or output
   let conf = nconf.get(dest) || {};
