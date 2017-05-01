@@ -5,7 +5,14 @@ const Promise = require('bluebird');
 const nconf = require('nconf');
 
 module.exports = function(source,argv) {
-  
+  // By default we enable dns cache
+  if (!argv.dnsCacheOff)
+    require('dnscache')({
+    enable : true,
+    ttl : argv.dnsTtl || 30000,
+    cachesize : argv.dnsSize || 10000
+  });
+
   // If source
   if (source && !source.match('http') && source.match('/')) {
     source = source.split('/');
