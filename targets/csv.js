@@ -3,14 +3,14 @@ const csvWriter = require('csv-write-stream');
 
 module.exports = function(stream,argv) {
   const separator = argv.separator || 'ᐅ';
-  let headers;
+  let headers = {};
 
-  function getHeaders(d) {
+  function getHeaders(d,p) {
     if (d && typeof d === 'object')
       return Object.keys(d).reduce( (p,key) => {
-        p[key] = getHeaders(d[key]);
+        p[key] = getHeaders(d[key], p[key]);
         return p;
-      },{});
+      },p || {});
     else
       return true;
   }
@@ -30,11 +30,12 @@ module.exports = function(stream,argv) {
   }
 
 
-  let _stream = stream.pipe(etl.map(function(d) {
-    headers = headers || getHeaders(d);
-    return flattenData(headers,d);
-  }))
-  .pipe(csvWriter());
+  let _stream = stream
+    .pipe(etl.prescan(isNaN(argv.prescan) ? 100 : argv.prescan, d =>
+      d.forEach(d => headers = getHeaders(d,headers)))
+    )
+    .pipe(etl.map(d => flattenData(headers,d)))
+    .pipe(csvWriter());
 
   const outStream =  stream => {
     if(argv.target_gzip){
@@ -42,7 +43,7 @@ module.exports = function(stream,argv) {
       return stream.pipe(gz);
     } else
       return stream;
-  }
+  };
 
   return outStream(_stream).pipe(argv.source === 'screen' ? etl.map(d => console.log(d)) : etl.toFile(argv.dest));
 
