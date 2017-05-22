@@ -59,7 +59,10 @@ module.exports = function(obj,argv) {
   if (!argv.silent)
     console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''} `);
 
-  let stream = obj.stream(argv);
+  let stream = obj.stream(argv).on('error',e => {
+    console.log('error',e);
+    process.exit();
+  });
 
   if (obj[type] && typeof obj[type].transform === 'function')
     stream = stream.pipe(etl.map(obj[type].transform));
