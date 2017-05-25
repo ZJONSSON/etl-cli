@@ -71,6 +71,13 @@ module.exports = function(obj,argv) {
     if (argv.setid)
       d._id = d[argv.setid];
 
+    if (argv.select)
+      d = argv.select.split(',').reduce( (p,key) => {
+        if (d[key] !== undefined)
+          p[key] = d[key];
+        return p;
+      },{});
+
     if (argv.remove)
       Object.keys(d).forEach(key => {
         if (argv.remove.exec(key))
