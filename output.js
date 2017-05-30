@@ -60,7 +60,7 @@ module.exports = function(obj,argv) {
     console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''} `);
 
   let stream = obj.stream(argv).on('error',e => {
-    console.log('error',e);
+    console.error('error',e);
     process.exit();
   });
 
@@ -119,6 +119,6 @@ module.exports = function(obj,argv) {
       clearInterval(counter);
       if (!argv.silent)
         console.log(`Completed ${Σ} records`);
-    }, e => console.log('error',e))
+    }, e => console.error('error',e))
     .then(() => setImmediate(() => process.exit()));
 };

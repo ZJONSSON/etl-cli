@@ -34,7 +34,7 @@ module.exports = function(source,argv) {
   }
 
   if (!source)
-    return console.log('Source missing.  etl [source] [dest] ');
+    return console.error('Source missing.  etl [source] [dest] ');
 
   argv.source = source;
 
