@@ -14,6 +14,10 @@ if (!module.parents) {
   const argv = minimist(process.argv.slice(2));
   let source = argv.source;
 
+  // replace proxy from config (if found)
+  if (argv.proxy && nconf.get(argv.proxy))
+    argv.proxy = nconf.get(argv.proxy);
+
   // expose nconf in the argv
   argv.nconf = nconf;
   
