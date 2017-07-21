@@ -64,6 +64,9 @@ module.exports = function(obj,argv) {
     process.exit();
   });
 
+  if (argv.transform)
+    stream = stream.pipe(etl.map(require(path.resolve('.',argv.transform))));
+
   if (obj[type] && typeof obj[type].transform === 'function')
     stream = stream.pipe(etl.map(obj[type].transform));
 
