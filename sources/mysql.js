@@ -2,41 +2,37 @@ const etl = require('etl');
 
 module.exports = argv => {
   const mysql = require('mysql');
-  ['source_host','source_database', 'source_table'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
+  ['source_database', 'source_table'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
-  let conf = {
-    host: argv.source_host,
-    user: argv.source_user,
-    password: argv.source_password,
-    database: argv.source_database,
-    connectionLimit: argv.source_connectionLimit || 10
-  };
+  argv.source_table = argv.source_database+'.'+argv.source_table;
+
+  let conf = argv.source_config;
 
   let pool = mysql.createPool(conf);
   var p = etl.mysql.execute(pool);
 
-  key_query = mysql.format('SHOW KEYS FROM ?? WHERE Key_name="PRIMARY"', [argv.source_table]);
-  query = argv.source_query || mysql.format('SELECT * FROM ??',[argv.source_table]);
-  schema_query = argv.schema_query || mysql.format('SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?',[argv.source_database, argv.source_table]);
+  const key_query = mysql.format('SHOW KEYS FROM ?? WHERE Key_name="PRIMARY"', [argv.source_table]);
+  const query = argv.source_query || mysql.format('SELECT * FROM ??',[argv.source_table]);
+  const schema_query = argv.schema_query || mysql.format('SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?',[argv.source_database, argv.source_table]);
 
   const sqlTypeToElastic = (type) => {
     type = type.toLowerCase();
-    if (type.includes("char"))
+    if (type.includes('char'))
       return {
-        type: "text",
+        type: 'text',
         fields: {
           keyword: {
-            type: "keyword",
+            type: 'keyword',
             ignore_above: 256
           }
         }
       };
-    if (type.includes("int"))
-      return {type: "long"};
-    if (type.includes("float"))
-      return {type: "float"};
-    if (type.includes("date"))
-      return {type: "date", ignore_malformed: true};
+    if (type.includes('int'))
+      return {type: 'long'};
+    if (type.includes('float'))
+      return {type: 'float'};
+    if (type.includes('date'))
+      return {type: 'date', ignore_malformed: true};
     return type;
   };
 
