@@ -64,8 +64,13 @@ module.exports = function(obj,argv) {
     process.exit();
   });
 
-  if (argv.transform)
-    stream = stream.pipe(etl.map(require(path.resolve('.',argv.transform))));
+  if (argv.transform) {
+    let transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
+    argv.transform.split(',').forEach(transform => {
+      transform = require(path.resolve('.',transform));
+      stream = stream.pipe(etl.map(transform_concurrency,d => transform(d,argv),{catch: console.log}));
+    });
+  }
 
   if (obj[type] && typeof obj[type].transform === 'function')
     stream = stream.pipe(etl.map(obj[type].transform));
