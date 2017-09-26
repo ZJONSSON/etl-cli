@@ -12,7 +12,9 @@ module.exports = argv => {
   var p = etl.mysql.execute(pool);
 
   const key_query = mysql.format('SHOW KEYS FROM ?? WHERE Key_name="PRIMARY"', [argv.source_table]);
-  const query = argv.source_query || mysql.format('SELECT * FROM ??',[argv.source_table]);
+  let query = argv.source_query || mysql.format('SELECT * FROM ??',[argv.source_table]);
+  if (argv.where)
+    query += mysql.format(` WHERE  ${argv.where}`);
   const schema_query = argv.schema_query || mysql.format('SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?',[argv.source_database, argv.source_table]);
 
   const sqlTypeToElastic = (type) => {
@@ -49,7 +51,7 @@ module.exports = argv => {
     elastic: {
       mapping: () => sqlToElasticSchema(schema_query)
     },
-    recordCount : () => p.query(mysql.format('SELECT COUNT(*) AS recordCount FROM ??',[argv.source_table])).then(d => d[0].recordCount),
+    recordCount : () => p.query(mysql.format('SELECT COUNT(*) AS recordCount FROM ?? '+(argv.where ? ' where '+argv.where : ''),[argv.source_table])).then(d => d[0].recordCount),
     stream : () => etl.toStream(function(){
       return p.query(key_query)
         .then( keys => {
