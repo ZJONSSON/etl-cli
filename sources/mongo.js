@@ -3,11 +3,7 @@ const etl = require('etl');
 module.exports = argv => {
   const mongodb = require('mongodb');
   let query = undefined;
-  if (argv.source_query) {
-    const vm = require('vm');
-    query = vm.runInNewContext(`ret = ${argv.source_query}`);
-  }
-
+  
   ['source_uri','source_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
   const db = mongodb.connect(argv.source_uri);

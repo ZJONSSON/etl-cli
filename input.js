@@ -29,8 +29,12 @@ module.exports = function(source,argv) {
 
   // Parse query into JSON
   if (typeof argv.source_query === 'string') {
-    try { argv.source_query = JSON.parse(argv.source_query);}
-    catch(e) {}
+    try {  
+      const vm = require('vm');
+      argv.source_query = vm.runInNewContext(`ret = ${argv.source_query}`);
+    } catch(e) {
+      console.error('source_query does not parse into json');
+    }
   }
 
   if (!source)
