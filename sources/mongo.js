@@ -2,11 +2,11 @@ const etl = require('etl');
 
 module.exports = argv => {
   const mongodb = require('mongodb');
-  let query = undefined;
   
   ['source_uri','source_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
   const db = mongodb.connect(argv.source_uri);
+  const query = argv.source_query;
 
   return {
     recordCount : () => db.then(db => 
