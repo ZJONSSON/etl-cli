@@ -11,6 +11,8 @@ module.exports = (stream,argv,schema) => {
   if (!argv.target_config && !argv.target_host) 
     throw 'target_config or target_host missing';
 
+  const target_indextype = argv.target_indextype !== 'custom' ? argv.target_indextype : undefined;
+
   let config = Object.assign({},argv.target_host ? { host: argv.target_host } : argv.target_config );
 
   // Collect 100 records by default for bulk indexing
@@ -21,19 +23,19 @@ module.exports = (stream,argv,schema) => {
     config.connectionClass = httpAwsEs;
 
   const mapping = Promise.resolve(schema.mapping && typeof schema.mapping === 'function' ? schema.mapping() : schema.mapping)
-    .then(mapping => ({[argv.target_indextype]: mapping || {}}));
+    .then(mapping => mapping && ({[target_indextype]: mapping || {}}));
 
   const settings = Promise.resolve(schema.settings && typeof schema.settings === 'function' ? schema.settings() : schema.settings);
   
   const client = new require('elasticsearch').Client(config);
 
   return etl.toStream(function() {
-    const indexStr = `${argv.target_index}/${argv.target_indextype}`;
+    const indexStr = `${argv.target_index}/${target_indextype}`;
 
     return Promise.try( ()=> {
       // Start by deleting the index if `delete_target` is defined
       if (argv.delete_target)
-        return client.indices.delete({index: argv.target_index, type: argv.target_indextype})
+        return client.indices.delete({index: argv.target_index, type: target_indextype})
           .then(
             d => !argv.silent && console.log(`Delete Index ${indexStr} successful`),
             e => !argv.silent && console.log(`Delete Index ${indexStr} failed: ${e.message}`)
@@ -63,8 +65,9 @@ module.exports = (stream,argv,schema) => {
           // If index already exists we try to update mapping
           if (!argv.silent)
             console.log(`Warning: Index ${indexStr} already exists ${settings && '- settings not updated'}`);
+
           if (mapping)
-            return client.indices.putMapping({index: argv.target_index, type: argv.target_indextype, body: mapping})
+            return client.indices.putMapping({index: argv.target_index, type: target_indextype, body: mapping})
               .then( () => !argv.silent && console.log(`Put Mapping ${indexStr} successful`));
         }
       );
@@ -77,11 +80,11 @@ module.exports = (stream,argv,schema) => {
       };
 
       if (argv.update)
-        return out.pipe(etl.elastic.update(client,argv.target_index,argv.target_indextype,options));
+        return out.pipe(etl.elastic.update(client,argv.target_index,target_indextype,options));
       else if (argv.upsert)
-        return out.pipe(etl.elastic.upsert(client,argv.target_index,argv.target_indextype,options));
+        return out.pipe(etl.elastic.upsert(client,argv.target_index,target_indextype,options));
       else
-        return out.pipe(etl.elastic.index(client,argv.target_index,argv.target_indextype,options));
+        return out.pipe(etl.elastic.index(client,argv.target_index,target_indextype,options));
     });
   });
   
