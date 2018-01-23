@@ -77,6 +77,11 @@ module.exports = function(obj,argv) {
     });
   }
 
+  if (argv.chain) {
+    let chain = require(path.resolve('.',argv.chain));
+    stream = stream.pipe(etl.chain(chain));
+  }
+
   if (obj[type] && typeof obj[type].transform === 'function')
     stream = stream.pipe(etl.map(obj[type].transform));
 
