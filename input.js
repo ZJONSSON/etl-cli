@@ -3,6 +3,7 @@
 const path = require('path');
 const Promise = require('bluebird');
 const nconf = require('nconf');
+const fs = require('fs');
 
 module.exports = function(source,argv) {
   
@@ -26,6 +27,10 @@ module.exports = function(source,argv) {
   // Custom config can redefine the source
   if (argv.source_source)
     source = argv.source_source;
+
+  if (argv.source_query_file) {
+    argv.source_query = String(fs.readFileSync(path.resolve('.',argv.source_query_file)));
+  }
 
   // Parse query into JSON
   if (typeof argv.source_query === 'string') {
