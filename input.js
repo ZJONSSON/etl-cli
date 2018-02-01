@@ -29,7 +29,14 @@ module.exports = function(source,argv) {
     source = argv.source_source;
 
   if (argv.source_query_file) {
-    argv.source_query = String(fs.readFileSync(path.resolve('.',argv.source_query_file)));
+    if (/\.js$/.test(argv.source_query_file)) {
+      argv.source_query = require(path.resolve('.',argv.source_query_file));
+      if (typeof argv.source_query === 'function') {
+        argv.source_query = argv.source_query(argv);
+      }
+    } else {
+      argv.source_query = String(fs.readFileSync(path.resolve('.',argv.source_query_file)));
+    }
   }
 
   // Parse query into JSON
