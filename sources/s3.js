@@ -16,6 +16,13 @@ module.exports = argv => {
     Key: argv.source_key
   })
   .createReadStream()
-  .pipe(etl.split())
-  .pipe(etl.map(d => JSON.parse(d.text)));
+  .pipe(etl.chain(inbound => {
+    if (argv.source_format === 'raw') {
+      return inbound;
+    } else {
+      return inbound
+        .pipe(etl.split())
+        .pipe(etl.map(d => JSON.parse(d.text)));
+    }
+  }));
 };
