@@ -83,7 +83,7 @@ module.exports = function(obj,argv) {
 
   if (argv.chain) {
     let chain = require(path.resolve('.',argv.chain));
-    stream = stream.pipe(etl.chain(chain));
+    stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
   }
 
   if (obj[type] && typeof obj[type].transform === 'function')
