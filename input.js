@@ -8,7 +8,7 @@ const fs = require('fs');
 module.exports = function(source,argv) {
   
   // If source
-  if (source && !source.match('http') && source.match('/')) {
+  if (source && !source.match('http') && !fs.existsSync(source) && source.match('/')) {
     source = source.split('/');
     argv.source_index = argv.source_index || source[1];
     argv.source_collection = argv.source_collection || source[1];
