@@ -56,6 +56,10 @@ module.exports = function(obj,argv) {
   let m = /\.(json|csv)/.exec(dest);
   let type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
 
+  if (/.parquet$/.test(dest)) {
+    argv.target_type = 'raw';
+  }
+
   if (!argv.silent)
     console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''} `);
 
