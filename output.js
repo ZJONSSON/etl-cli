@@ -3,6 +3,7 @@ const etl = require('etl');
 const path = require('path');
 const Promise = require('bluebird');
 const nconf = require('nconf');
+const fs = require('fs');
 
 module.exports = function(obj,argv) {
   argv = Object.assign({},argv || minimist(process.argv.slice(2)));  
@@ -15,10 +16,17 @@ module.exports = function(obj,argv) {
   // If dest has '/'
   if (dest && dest.match('/')) {
     dest = dest.split('/');
-    argv.target_index = argv.target_index || dest[1];
-    argv.target_collection = argv.target_collection || dest[1];
-    argv.target_indextype = argv.target_indextype || dest[2];
-    dest = dest[0];
+
+    let trialPath = dest.slice(0,dest.length-1).join('/');
+    // If dest is not a path, we break it up into target_index and target_collection
+    if (!fs.existsSync(trialPath)) {
+      argv.target_index = argv.target_index || dest[1];
+      argv.target_collection = argv.target_collection || dest[1];
+      argv.target_indextype = argv.target_indextype || dest[2];
+      dest = dest[0];
+    } else {
+      dest = dest.join('/');
+    }
   }
 
   argv.target_gzip = dest && dest.match(/\.gz$/ig);
