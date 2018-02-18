@@ -57,7 +57,8 @@ module.exports = function(obj,argv) {
     counter = setInterval(() => {
       let Δ = Σ - last;
       last = Σ;
-      console.log(`Σ${Σ} Δ${Δ} ${total && (Math.floor(Σ/total*10000)/100)+'%' ||''}`);
+      const heap = Math.round(process.memoryUsage().heapUsed/1000000);
+      console.log(`Σ${Σ} Δ${Δ} ${total && (Math.floor(Σ/total*10000)/100)+'%' ||''} - Heap: ${heap} Mb`);
     }, argv.report_interval || 1000);
   }
 
@@ -68,8 +69,9 @@ module.exports = function(obj,argv) {
     argv.target_type = 'raw';
   }
 
-  if (!argv.silent)
-    console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''} `);
+  if (!argv.silent) {
+    console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''}`);
+  }
 
   let stream = obj.stream(argv).on('error',e => {
     console.error('error',e);
