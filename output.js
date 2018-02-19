@@ -66,7 +66,7 @@ module.exports = function(obj,argv) {
   let type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
 
   if (/.parquet$/.test(dest)) {
-    argv.target_type = 'raw';
+    type = argv.target_type = 'raw';
   }
 
   if (!argv.silent) {
