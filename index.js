@@ -20,6 +20,9 @@ if (!module.parents) {
 
   // expose nconf in the argv
   argv.nconf = nconf;
+
+  // getProxy returns a new proxy string where {{random}} has been replaced with a random number
+  argv.getProxy = () =>  argv.proxy ? argv.proxy.replace('{{random}}',String(Math.random())) : undefined;
   
   // If source is not explicitly defined, we assume its the first argument
   if (!source) {
