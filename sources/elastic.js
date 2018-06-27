@@ -1,5 +1,6 @@
 const etl = require('etl');
 const httpAwsEs = require('http-aws-es');
+const AWS = require('aws-sdk');
 
 module.exports = argv => {
   if (! (typeof argv.source_config === 'object' || argv.source_host))
@@ -10,8 +11,10 @@ module.exports = argv => {
 
   let config = Object.assign({},argv.source_host ? { host: argv.source_host } : argv.source_config );
 
-  if (config.amazonES)
+  if (config.awsConfig){
     config.connectionClass = httpAwsEs;
+    config.awsConfig = new AWS.Config(config.awsConfig);
+  }
 
   const client = new require('elasticsearch').Client(config);
   const payload = {

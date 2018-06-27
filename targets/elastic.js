@@ -1,6 +1,7 @@
 const etl = require('etl');
 const httpAwsEs = require('http-aws-es');
 const Promise = require('bluebird');
+const AWS = require('aws-sdk');
 
 module.exports = (stream,argv,schema) => {
   schema = schema && schema.elastic || {};
@@ -19,8 +20,10 @@ module.exports = (stream,argv,schema) => {
   const out = stream.pipe(etl.collect(argv.collect || 100));
 
   // If amazonES parameters are defined, we use the aws connection class
-  if (config.amazonES)
+  if (config.awsConfig){
     config.connectionClass = httpAwsEs;
+    config.awsConfig = new AWS.Config(config.awsConfig);
+  }
 
   const mapping = Promise.resolve(schema.mapping && typeof schema.mapping === 'function' ? schema.mapping() : schema.mapping)
     .then(mapping => mapping && ({[target_indextype]: mapping || {}}));
@@ -57,8 +60,9 @@ module.exports = (stream,argv,schema) => {
         () => !argv.silent && console.log(`Create Index ${indexStr} successful`),
         e => {
           if (e.message && 
-            (e.message.indexOf('IndexAlreadyExistsException') === -1) && 
-            (e.message.indexOf('index_already_exists_exception') === -1)
+            (e.message.indexOf('IndexAlreadyExistsException') === -1) &&
+            (e.message.indexOf('index_already_exists_exception') === -1) &&
+            (e.message.indexOf('resource_already_exists_exception') === -1)
           )
             throw e;
           
