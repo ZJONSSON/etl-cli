@@ -21,7 +21,7 @@ module.exports = argv => {
       index: argv.source_index,
       type: argv.source_indextype,
       size: argv.source_size || 1000,
-      body: argv.source_query.query ? argv.source_query : {query: argv.source_query},
+      body: argv.source_query && argv.source_query.query ? argv.source_query : {query: argv.source_query},
       scroll: argv.source_scroll || argv.scroll || '60s'
     };
 
