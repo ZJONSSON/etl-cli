@@ -1,5 +1,6 @@
 const etl = require('etl');
 const httpAwsEs = require('http-aws-es');
+const AWS = require('aws-sdk');
 
 module.exports = argv => {
   if (! (typeof argv.source_config === 'object' || argv.source_host))
@@ -10,15 +11,22 @@ module.exports = argv => {
 
   let config = Object.assign({},argv.source_host ? { host: argv.source_host } : argv.source_config );
 
-  if (config.amazonES)
+  const awsConfig = config.awsConfig || config.amazonES;
+  if (awsConfig){
     config.connectionClass = httpAwsEs;
+    config.awsConfig = new AWS.Config({
+      accessKeyId: awsConfig.accessKeyId || awsConfig.accessKey,
+      secretAccessKey: awsConfig.secretAccessKey || awsConfig.secretKey,
+      region: awsConfig.region
+    });
+  }
 
   const client = new require('elasticsearch').Client(config);
   const payload = {
       index: argv.source_index,
       type: argv.source_indextype,
       size: argv.source_size || 1000,
-      body: argv.source_query.query ? argv.source_query : {query: argv.source_query},
+      body: argv.source_query && argv.source_query.query ? argv.source_query : {query: argv.source_query},
       scroll: argv.source_scroll || argv.scroll || '60s'
     };
 
