@@ -20,9 +20,14 @@ module.exports = (stream,argv,schema) => {
   const out = stream.pipe(etl.collect(argv.collect || 100));
 
   // If amazonES parameters are defined, we use the aws connection class
-  if (config.awsConfig){
+  const awsConfig = config.awsConfig || config.amazonES;
+  if (awsConfig){
     config.connectionClass = httpAwsEs;
-    config.awsConfig = new AWS.Config(config.awsConfig);
+    config.awsConfig = new AWS.Config({
+      accessKeyId: awsConfig.accessKeyId || awsConfig.accessKey,
+      secretAccessKey: awsConfig.secretAccessKey || awsConfig.secretKey,
+      region: awsConfig.region
+    });
   }
 
   const mapping = Promise.resolve(schema.mapping && typeof schema.mapping === 'function' ? schema.mapping() : schema.mapping)

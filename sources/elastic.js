@@ -11,9 +11,14 @@ module.exports = argv => {
 
   let config = Object.assign({},argv.source_host ? { host: argv.source_host } : argv.source_config );
 
-  if (config.awsConfig){
+  const awsConfig = config.awsConfig || config.amazonES;
+  if (awsConfig){
     config.connectionClass = httpAwsEs;
-    config.awsConfig = new AWS.Config(config.awsConfig);
+    config.awsConfig = new AWS.Config({
+      accessKeyId: awsConfig.accessKeyId || awsConfig.accessKey,
+      secretAccessKey: awsConfig.secretAccessKey || awsConfig.secretKey,
+      region: awsConfig.region
+    });
   }
 
   const client = new require('elasticsearch').Client(config);
