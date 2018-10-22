@@ -63,7 +63,8 @@ module.exports = function(obj,argv) {
   }
 
   let m = /\.(json|csv)/.exec(dest);
-  let type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
+  argv.target_type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
+  let type = argv.target_type;
 
   if (/.parquet$/.test(dest)) {
     type = argv.target_type = 'raw';
