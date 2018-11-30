@@ -8,7 +8,9 @@ module.exports = function(stream,argv) {
   function getHeaders(d,p) {
     if (d && typeof d === 'object')
       return Object.keys(d).reduce( (p,key) => {
-        p[key] = getHeaders(d[key], p[key]);
+        if (d[key] !== undefined && d[key] !== null) {
+          p[key] = getHeaders(d[key], p[key]);
+        }
         return p;
       },p || {});
     else
