@@ -56,8 +56,8 @@ module.exports = function(source,argv) {
 
   // Resolve any injections
   for (let key in argv) {
-    if (key.indexOf('inject_') === 0) {
-      argv[key] = module.exports(argv[key], Object.assign({}, argv, {inject: true})).stream(argv);
+    if (argv[key] && key.indexOf('inject_') === 0) {
+      argv[key] = module.exports(argv[key], Object.assign({}, argv, {[key]: null})).stream(argv);
     }
   }
 
