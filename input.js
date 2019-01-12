@@ -88,7 +88,7 @@ module.exports = function(source,argv) {
   if (argv.count) {
     if (!obj.recordCount)
       throw 'No Recordcount available';
-    Promise.try(obj.recordCount)
+    Promise.try(() => obj.recordCount(argv))
       .then(d => console.log(`Record count: ${d}`))
       .then(() => process.exit());
   } else
