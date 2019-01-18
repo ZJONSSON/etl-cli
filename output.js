@@ -24,7 +24,6 @@ module.exports = async function(obj,argv) {
       argv.target_collection = argv.target_collection || dest[1];
       argv.target_indextype = argv.target_indextype || dest[2];
 
-      console.log(argv.target_index,argv.target_collection,argv.target__indextype)
       dest = dest[0];
     } else {
       dest = dest.join('/');
