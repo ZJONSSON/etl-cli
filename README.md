@@ -5,6 +5,79 @@ Install globally to have `etl` available on the command line:
 npm install etl-cli -g
 ```
 
+Generically you use etl-cli as follows:
+
+```
+etl [source] [target]
+```
+
+source can be any of the following:
+* .js  - javascript program exporting a stream
+* .json - file with json objects separated by newline
+* .csv - csv file
+* http(s) or s3 link to a .csv file or .json file
+* stdin (you have to specificy )
+* database/collection/table
+
+target can be any of the following:
+* .json
+* .csv
+* s3 link to either .json or .csv file
+* database/collection/table
+
+If the target is `.csv` then any nested fieldnames will be flattened to a path using ᐅ (or optional --sepearator=x) as a separator .   Structure will be determined by prescanning 100 lines by default (can be modified by --prescan=x)
+
+### Command line arguments (optional)
+
+* --silent: surpress process notifications
+* --separator: separator for flattening nested objects into csv
+* --transform=x: javascript transform between source and target
+* --tranform_concurrency=x: concurrency for transforms
+* --chain=x: javascript chain between source and target
+* --proxy=x: proxy (for use with argv.getProxy())
+* --source_query: query to be applied to the source
+* --source_query_file: use query from either JSON or .js file that exports a function
+
+
+### Javascript source
+
+A typical source is a javascript file that fetches something from web, ftp site or other remote location. A javascript source file needs to export an object that contains a function called `stream`.  This function will receive `argv` as first argument, which gives access to command line arguments and config.  The function needs to return a valid node stream in objectMode.
+
+Optionally the object can also contain `recordCount` function that should return the recordCount of the source stream (if available).  This allows the runner to report % completed as the stream is running.
+
+The javascript file can also just return a function that returns a stream.
+
+Here is an example of javascript source:
+
+```
+const etl = require('etl');
+
+module.exports = argv => {
+  const arr = new Array(argv.count || 1000);
+  return etl.toStream([...arr].map( (d,i) => ({i})));
+}
+```
+
+
+### source/target from config
+
+If source or target is
+
+
+### argv
+
+The argument `argv` that is passed to javascript is a combination of
+* the command line arguments
+* nconf:  access to `.etlconfig.json`
+* inject_?: any injected datasets
+
+### source/target specific properties
+
+Many of the sources/targets require specific properties defined to function.   If they are defined on the command line they have to be prefixed by `source_` or `target_`.    If they are loaded through n
+
+
+
+
 Heavily under development - see source code for advanced usage 
 
 Examples:
