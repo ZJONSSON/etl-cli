@@ -155,6 +155,9 @@ module.exports = async function(obj,argv) {
       clearInterval(counter);
       if (!argv.silent)
         console.log(`Completed ${Σ} records`);
-    }, e => console.error('error',e))
+    }, e => {
+      if (e.errors) console.log('errors', JSON.stringify(e.errors,null,2));
+      else console.error('error',e.errors || e)
+    })
     .then(() => setImmediate(() => process.exit()));
 };
