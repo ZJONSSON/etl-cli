@@ -5,7 +5,7 @@ const Promise = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
 
-module.exports = function(obj,argv) {
+module.exports = async function(obj,argv) {
   argv = Object.assign({},argv || minimist(process.argv.slice(2)));  
   let dest = argv.target || argv._[0];
 
@@ -23,6 +23,8 @@ module.exports = function(obj,argv) {
       argv.target_index = argv.target_index || dest[1];
       argv.target_collection = argv.target_collection || dest[1];
       argv.target_indextype = argv.target_indextype || dest[2];
+
+      console.log(argv.target_index,argv.target_collection,argv.target__indextype)
       dest = dest[0];
     } else {
       dest = dest.join('/');
@@ -145,8 +147,9 @@ module.exports = function(obj,argv) {
       throw e;
   }
 
+  if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
 
-  return type(stream,argv,obj)
+  return (await type(stream,argv,obj))
     .pipe(etl.map(d => { if (!argv.silent) console.log(JSON.stringify(d,null,2));}))
     .promise()
     .then(() => {
