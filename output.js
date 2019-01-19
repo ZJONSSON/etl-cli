@@ -137,7 +137,6 @@ module.exports = async function(obj,argv) {
 
 
   try {
-    console.log(path.resolve(__dirname,'targets',type+'.js'))
     type = require(path.resolve(__dirname,'targets',type+'.js'));
   } catch(e) {
     if (e.code === 'MODULE_NOT_FOUND')
