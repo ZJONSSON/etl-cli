@@ -31,5 +31,8 @@ if (!module.parents) {
   }
 
   const _input = input(source,argv);
-  if (_input) output(_input,argv);
+  if (_input) output(_input,argv).catch(e => {
+    console.error(e);
+    process.exit();
+  });
 }
