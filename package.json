@@ -1,6 +1,6 @@
 {
   "name": "etl-cli",
-  "version": "0.0.71",
+  "version": "0.0.72",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "clues": "~3.5.35",
     "csv-write-stream": "^2.0.0",
     "elasticsearch": "~15.0.0",
-    "etl": "^0.5.16",
+    "etl": "^0.5.18",
     "http-aws-es": "^6.0.0",
     "minimist": "~1.2.0",
     "mongodb": "~2.2.21",
