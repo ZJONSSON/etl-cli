@@ -1,4 +1,4 @@
-const etl = require('/home/zjonsson/git/node-etl');
+const etl = require('etl');
 
 module.exports = async (stream,argv) => {
   const {BigQuery} = require('@google-cloud/bigquery');
