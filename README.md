@@ -136,3 +136,6 @@ Pipe from S3 into elastic
 ```
 etl s3/testbucket/records.json elastic/test2/records --target_host=localhost:9200 --source_accessKeyId=XXXXX --source_secretAccessKey=XXXX
 ```
+
+### files / s3files
+If the records being streamed contains `filename` and a `body` which is either a stream or a function that returns a stream, the individual `bodys` can be saved to disk (using `files` target) or to s3 (using `s3files` target).  By default both `files` and `s3files` will only save the file if the filename does not exist.  Overwrite can be enforced by setting `--no_skip=true`
