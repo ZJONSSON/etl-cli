@@ -12,9 +12,9 @@ module.exports = function(source,argv) {
     source = source.split('/');
     argv.source_index = argv.source_index || source[1];
     argv.source_collection = argv.source_collection || source[1];
-    argv.source_database = argv.source_database || source[1];
-    argv.source_table = argv.source_table || source[2];
-    argv.source_indextype = argv.source_indextype || source[2];
+    argv.source_database = argv.source_database || argv.source_collection;
+    argv.source_table = argv.source_table || source.slice(2).join('/');
+    argv.source_indextype = argv.source_indextype || argv.source_table;
     source = source[0];
   }
 

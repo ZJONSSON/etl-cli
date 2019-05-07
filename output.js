@@ -21,8 +21,8 @@ module.exports = async function(obj,argv) {
     // If dest is not a path, we break it up into target_index and target_collection
     if (!fs.existsSync(trialPath)) {
       argv.target_index = argv.target_index || dest[1];
-      argv.target_collection = argv.target_collection || dest[1];
-      argv.target_indextype = argv.target_indextype || dest[2];
+      argv.target_collection = argv.target_collection || argv.target_index;
+      argv.target_indextype = argv.target_indextype || dest.slice(2).join('/');
 
       dest = dest[0];
     } else {
