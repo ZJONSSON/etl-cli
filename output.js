@@ -84,7 +84,7 @@ module.exports = async function(obj,argv) {
     let transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
     argv.transform.split(',').forEach(transform => {
       transform = require(path.resolve('.',transform));
-      stream = stream.pipe(etl.map(transform_concurrency,function(d) {
+      stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
         return transform.call(this,d,argv);
       },{
         catch: console.log,
