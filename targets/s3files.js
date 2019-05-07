@@ -22,7 +22,7 @@ module.exports = function(stream,argv) {
       const res = await s3.listObjects(query).promise();
       res.Contents.forEach(d => files.add(d.Key));
       truncated = res.IsTruncated;
-      if (truncated) query.marker = res.Contents.slice(-1)[0].Key;
+      if (truncated) query.Marker = res.Contents.slice(-1)[0].Key;
     }
 
     return stream;
