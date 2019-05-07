@@ -30,7 +30,7 @@ module.exports = function(argv) {
         if (truncated) query.Marker = res.Contents.slice(-1)[0].Key;
       }
     })
-    .pipe(etl.map(argv.concurrency || 1, async filename => ({
+    .pipe(etl.map(async filename => ({
       filename,
       body: () => s3.getObject({Bucket, Key: filename}).createReadStream()
     })))
