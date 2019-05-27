@@ -82,15 +82,25 @@ module.exports = async function(obj,argv) {
 
   if (argv.transform) {
     let transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
-    argv.transform.split(',').forEach(transform => {
-      transform = require(path.resolve('.',transform));
+     try {  
+      const vm = require('vm');
+      let transform = vm.runInNewContext(`ret = ${argv.transform}`);
       stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
         return transform.call(this,d,argv);
       },{
-        catch: console.log,
-        flush: transform.flush
+        catch: console.log
       }));
-    });
+    } catch(e) {
+      argv.transform.split(',').forEach(transform => {
+        transform = require(path.resolve('.',transform));
+        stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
+          return transform.call(this,d,argv);
+        },{
+          catch: console.log,
+          flush: transform.flush
+        }));
+      });
+    }
   }
 
   if (argv.chain) {
