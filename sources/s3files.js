@@ -23,16 +23,18 @@ module.exports = function(argv) {
         const res = await s3.listObjects(query).promise();
 
         res.Contents.forEach(d => {
-          if (reFilter.exec(d.Key)) this.push(d.Key);
+          let params = {Bucket, Key: d.Key};
+          if (reFilter.exec(d.Key)) this.push({
+            bucket: Bucket,
+            filename: d.Key,
+            getClient: () => s3,
+            body: () => s3.getObject(params).createReadStream()
+          });
         });
 
         truncated = res.IsTruncated;
         if (truncated) query.Marker = res.Contents.slice(-1)[0].Key;
       }
     })
-    .pipe(etl.map(async filename => ({
-      filename,
-      body: () => s3.getObject({Bucket, Key: filename}).createReadStream()
-    })))
   };
 };
