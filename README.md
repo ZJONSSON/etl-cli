@@ -15,7 +15,8 @@ source can be any of the following:
 * .js  - javascript program exporting a stream
 * .json - file with json objects separated by newline
 * .csv - csv file
-* http(s) or s3 link to a .csv file or .json file
+* .xlsx - excel file, first sheet
+* http(s) or s3 link to a .csv, .json or .xlsx file
 * stdin (you have to specificy )
 * database/collection/table
 
@@ -96,6 +97,11 @@ etl https://data.consumerfinance.gov/api/views/s6ew-h6mp/rows.csv sample.json
 Convert json to csv:
 ```
 etl sample.json sample.csv
+```
+
+Stream first worksheet of an .xlsx file from the web:
+```
+etl https://www.hud.gov/sites/documents/RM-A_07-31-2014.xlsx
 ```
 
 Pipe a csv file to mongo
