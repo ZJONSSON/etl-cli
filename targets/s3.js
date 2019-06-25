@@ -20,13 +20,13 @@ module.exports = function(stream,argv) {
   const out = etl.map();
   
   stream
-    .pipe(function(d) {
+    .pipe(etl.map(function(d) {
       if (d instanceof Object && !(d instanceof Buffer)) {
         return JSON.stringify(d)+'\n';
       } else {
         return d;
       }
-    })
+    }))
     .pipe(upload)
     .on('error', e=> out.emit('error',e))
     .on('uploaded',() =>  out.end());
