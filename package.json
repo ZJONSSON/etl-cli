@@ -1,6 +1,6 @@
 {
   "name": "etl-cli",
-  "version": "0.0.82",
+  "version": "0.0.83",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
     "http-aws-es": "^6.0.0",
     "minimist": "~1.2.0",
     "mongodb": "~2.2.21",
+    "mssql": "^5.1.0",
     "mysql": "^2.14.1",
     "nconf": "~0.8.4",
     "pg": "^7.8.0",
@@ -30,6 +31,7 @@
     "recursive-readdir": "^2.2.2",
     "request": "~2.79.0",
     "s3-upload-stream": "~1.0.7",
+    "tedious": "^6.2.0",
     "unzipper": "~0.9.4"
   }
 }
