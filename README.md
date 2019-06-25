@@ -18,13 +18,13 @@ source can be any of the following:
 * .xlsx - excel file, first sheet
 * http(s) or s3 link to a .csv, .json or .xlsx file
 * stdin (you have to specificy )
-* database/collection/table
+* database/collection/table (elastic, mysql, mssql, postgres, mongo)
 
 target can be any of the following:
 * .json
 * .csv
 * s3 link to either .json or .csv file
-* database/collection/table
+* database/collection/table (elastic, mysql, postgres, mongo)
 
 If the target is `.csv` then any nested fieldnames will be flattened to a path using ᐅ (or optional --sepearator=x) as a separator .   Structure will be determined by prescanning 100 lines by default (can be modified by --prescan=x)
 
