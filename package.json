@@ -1,6 +1,6 @@
 {
   "name": "etl-cli",
-  "version": "0.0.83",
+  "version": "0.0.84",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,6 +8,10 @@
   },
   "bin": {
     "etl": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/ZJONSSON/etl-cli"
   },
   "author": "https://github.com/ZJONSSON",
   "license": "MIT",
@@ -18,7 +22,7 @@
     "clues": "~3.5.35",
     "csv-write-stream": "^2.0.0",
     "elasticsearch": "~15.0.0",
-    "etl": "^0.6.3",
+    "etl": "^0.6.5",
     "http-aws-es": "^6.0.0",
     "minimist": "~1.2.0",
     "mongodb": "~2.2.21",
