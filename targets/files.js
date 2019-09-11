@@ -32,7 +32,8 @@ module.exports = function(stream,argv) {
         .on('close',async () => {
           await renameAsync(tmpKey, Key);
           resolve();
-        });
+        })
+        .on('error', e => reject(e));
     });
     return {Key, message: 'OK'};
 
