@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 const path = require('path');
+const request = require('request');
 const minimist = require('minimist');
 const nconf = require('nconf')
   .file({file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE,'.etlconfig.json')});
@@ -23,6 +24,12 @@ if (!module.parents) {
 
   // getProxy returns a new proxy string where {{random}} has been replaced with a random number
   argv.getProxy = () =>  argv.proxy ? argv.proxy.replace('{{random}}',String(Math.random())) : undefined;
+
+  // Include default request / requestAsync that use proxy (if supplied) automatically
+  argv.request = d => request(Object.assign({proxy: argv.getProxy()},d));
+  argv.requestAsync = d => new Promise( (resolve, reject) => {
+    request(Object.assign({proxy: argv.getProxy()},d), (err, res) => err ? reject(err) : resolve(res));
+  });
   
   // If source is not explicitly defined, we assume its the first argument
   if (!source) {
