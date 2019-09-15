@@ -95,6 +95,12 @@ module.exports = async function(obj,argv) {
     } catch(e) {
       argv.transform.split(',').forEach(transform => {
         transform = require(path.resolve('.',transform));
+
+        // If the transform should be chained, we chain instead of map
+        if (transform.chain) {
+          stream = stream.pipe(etl.chain(incoming => transform(incoming,argv)));
+          return;
+        }
         stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
           return transform.call(this,d,argv);
         },{
