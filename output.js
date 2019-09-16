@@ -104,7 +104,7 @@ module.exports = async function(obj,argv) {
         stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
           return transform.call(this,d,argv);
         },{
-          catch: transform.catch ? (e,d) => transform.catch(e,d,argv) : console.log,
+          catch: transform.catch ? function(e,d) { transform.catch.call(this,e,d,argv); } : console.log,
           flush: transform.flush
         }));
       });
