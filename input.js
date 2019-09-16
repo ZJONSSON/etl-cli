@@ -63,15 +63,16 @@ module.exports = function(source,argv) {
 
   let type,obj;
 
-  // if the source is a node file we require it (optionally defining schema)
-  if (/\.js$/.exec(source)) {
-    obj = require(path.resolve('./',source));
-  } else {
-    // If the file is json or csv we set the correct type
-    const match = /\.(json|csv|xlsx)/.exec(source);
+
+  // If the file is json or csv we set the correct type
+  const match = /\.(json|csv|xlsx)/.exec(source);
+  if (match) {
     type = argv.source_type || (match && match[1]) || source;
     // Find the matching source_type and execute
     obj = require(path.resolve(__dirname,'sources',type))(argv);
+  } else {
+    // otherwise we try to require the file
+    obj = require(path.resolve('./',source));
   }
 
   if (!obj.stream)
