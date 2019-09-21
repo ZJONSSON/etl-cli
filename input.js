@@ -66,12 +66,11 @@ module.exports = function(source,argv) {
 
   // If the file is json or csv we set the correct type
   const match = /\.(json|csv|xlsx)/.exec(source);
-  if (match) {
-    type = argv.source_type || (match && match[1]) || source;
-    // Find the matching source_type and execute
+  type = argv.source_type || (match && match[1]) || source;
+  // Find the matching source_type and execute
+  if (type) {
     obj = require(path.resolve(__dirname,'sources',type))(argv);
   } else {
-    // otherwise we try to require the file
     obj = require(path.resolve('./',source));
   }
 
