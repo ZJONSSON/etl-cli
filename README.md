@@ -31,6 +31,7 @@ If the target is `.csv` then any nested fieldnames will be flattened to a path u
 ### Command line arguments (optional)
 
 * --silent: surpress process notifications
+* --collect=x: collect x number of records for bulk insert/upsert
 * --separator: separator for flattening nested objects into csv
 * --transform=x: javascript transform between source and target
 * --tranform_concurrency=x: concurrency for transforms
