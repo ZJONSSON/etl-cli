@@ -38,6 +38,8 @@ If the target is `.csv` then any nested fieldnames will be flattened to a path u
 * --proxy=x: proxy (for use with argv.getProxy())
 * --source_query: query to be applied to the source
 * --source_query_file: use query from either JSON or .js file that exports a function
+* --schema=file : optional file with schemas for elasticsearch or bigquery
+* --replace_table: bigquery - will delete the table and recreate with same schema before inserting
 
 
 ### Javascript source
