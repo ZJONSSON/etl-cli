@@ -75,8 +75,7 @@ module.exports = async function(obj,argv) {
     console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''}`);
   }
 
-
-  let stream = await obj.stream(argv);
+  let stream = await obj.stream ? obj.stream(argv) : obj(argv);
   stream.on('error',e => {
     console.error('error',e);
     process.exit();
