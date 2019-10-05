@@ -18,7 +18,7 @@ source can be any of the following:
 * .xlsx - excel file, first sheet
 * http(s) or s3 link to a .csv, .json or .xlsx file
 * stdin (you have to specificy )
-* database/collection/table (elastic, mysql, mssql, postgres, mongo)
+* database/collection/table (elastic, mysql, mssql, postgres, mongo, athena)
 
 target can be any of the following:
 * .json
