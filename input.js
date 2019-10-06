@@ -65,7 +65,7 @@ module.exports = function(source,argv) {
 
 
   // If the file is json or csv we set the correct type
-  const match = /\.(json|csv|xlsx)/.exec(source);
+  const match = /\.(json|csv|xlsx|parquet)/.exec(source);
   type = argv.source_type || (match && match[1]) || source;
 
   // Find the matching source_type and execute

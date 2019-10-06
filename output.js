@@ -63,13 +63,9 @@ module.exports = async function(obj,argv) {
     }, argv.report_interval || 1000);
   }
 
-  let m = /\.(json|csv)/.exec(dest);
+  let m = /\.(json|csv|parquet)/.exec(dest);
   argv.target_type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
   let type = argv.target_type;
-
-  if (/.parquet$/.test(dest)) {
-    type = argv.target_type = 'raw';
-  }
 
   if (!argv.silent) {
     console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''}`);
@@ -151,7 +147,6 @@ module.exports = async function(obj,argv) {
 
 
   argv.dest = dest;
-
 
   try {
     type = require(path.resolve(__dirname,'targets',type+'.js'));
