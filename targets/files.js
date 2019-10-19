@@ -4,6 +4,7 @@ const Promise = require('bluebird');
 const recursive = require('recursive-readdir');
 const recursiveAsync = Promise.promisify(recursive);
 const renameAsync = Promise.promisify(fs.rename);
+const utimesAsync = Promise.promisify(fs.utimes);
 const fstream = require('fstream');
 
 module.exports = function(stream,argv) {
@@ -31,6 +32,10 @@ module.exports = function(stream,argv) {
         .pipe(fstream.Writer(tmpKey))
         .on('close',async () => {
           await renameAsync(tmpKey, Key);
+          if (d.timestamp) {
+            const timestamp = new Date(+d.timestamp);
+            if (!isNaN(timestamp)) await utimesAsync(Key, timestamp, timestamp);
+          }
           resolve();
         })
         .on('error', e => reject(e));
