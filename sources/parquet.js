@@ -7,13 +7,25 @@ module.exports = function(argv) {
   return () => Stream.Readable({
       read : async function() {
         try {
-          reader = reader || await parquet.ParquetReader.openFile(path.resolve('./',argv.source));
-          cursor = cursor || reader.getCursor();
-          const record = await cursor.next();
-          if (!record) {
+          if (!reader) {
+            reader = await parquet.ParquetReader.openFile(path.resolve('./',argv.source));
+            cursor = reader.getCursor(argv.columns ? argv.columns.split(',') : undefined);
+            const exp = argv.export;
+            if (exp) {
+              if (exp == 'metadata') this.push(reader.metadata);
+              else if (exp == 'schema') this.push(reader.schema);
+              else this.emit('error','unknown export');
+              this.emit('end');
+              return;
+            }
+          }
+
+          const records = await cursor.nextRowGroup();
+
+          if (!records || !records.length) {
             this.emit('end');
           } else {
-            this.push(record);
+            records.forEach(record => this.push(record));
           }
         } catch(e) {
           this.emit('error',e);

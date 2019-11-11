@@ -8,6 +8,7 @@ const utimesAsync = Promise.promisify(fs.utimes);
 const fstream = require('fstream');
 
 module.exports = function(stream,argv) {
+  const filter_files = argv.filter_files && new RegExp(argv.filter_files);
   const target_dir = argv.target_dir || argv.target_collection;
   if (!target_dir) throw 'Not target_dir';
   let files = new Set([]);
@@ -19,9 +20,8 @@ module.exports = function(stream,argv) {
   })
   .pipe(etl.map(argv.concurrency || 1, async d => {
     const Key = `${target_dir}/${d.filename}`;
-    if (files.has(Key)) {
-      return {message: 'skipping', Key};
-    }
+    if (files.has(Key)) return {message: 'skipping', Key};
+    if (filter_files && !filter_files.test(Key)) return {message: 'ignoring', Key};
 
     const Body = typeof d.body === 'function' ? await d.body() : d.body;
     if (!Body) return {Key, message: 'No body'};
@@ -45,7 +45,9 @@ module.exports = function(stream,argv) {
   },{
     catch: function(e,d) {
       console.error(e);
-      this.write(d);
+      return
+      if (!e.code || e.code.includes('ENAMETOOLONG'))
+        this.write(d);
     }
   }));
     
