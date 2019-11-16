@@ -10,7 +10,7 @@ module.exports = function(stream,argv) {
   argv.target_bucket = argv.target_bucket ||  argv.target_collection;
   argv.target_key = argv.target_key ||  argv.target_indextype;
 
-  const s3Stream = S3Stream(new AWS.S3(argv));
+  const s3Stream = S3Stream(new AWS.S3(argv.target_config || argv));
 
   const upload = s3Stream.upload({
     Bucket : argv.target_bucket,

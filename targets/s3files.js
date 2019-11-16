@@ -5,7 +5,7 @@ module.exports = function(stream,argv) {
   argv = Object.assign({},argv);
   if (argv.target_accessKeyId) argv.accessKeyId = argv.target_accessKeyId;
   if (argv.target_secretAccessKey) argv.secretAccessKey = argv.target_secretAccessKey;
-  const s3 = new AWS.S3(argv);
+  const s3 = new AWS.S3(argv.source_config || argv);
 
   const Bucket = argv.target_bucket ||  argv.target_collection;
   const Prefix = argv.target_key ||  argv.target_indextype;

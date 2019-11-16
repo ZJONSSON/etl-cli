@@ -9,7 +9,7 @@ module.exports = argv => {
   argv.source_bucket = argv.source_bucket ||  argv.source_collection;
   argv.source_key = argv.source_key ||  argv.source_indextype;
 
-  const s3 = new AWS.S3(argv);
+  const s3 = new AWS.S3(argv.source_config || argv);
 
   return () => s3.getObject({
     Bucket : argv.source_bucket,

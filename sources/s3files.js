@@ -3,10 +3,11 @@ const AWS = require('aws-sdk');
 
 module.exports = function(argv) {
   argv = Object.assign({},argv);
+  
   if (argv.target_accessKeyId) argv.accessKeyId = argv.target_accessKeyId;
   if (argv.target_secretAccessKey) argv.secretAccessKey = argv.target_secretAccessKey;
 
-  const s3 = new AWS.S3(argv);
+  const s3 = new AWS.S3(argv.source_config || argv);
   const Bucket = argv.source_bucket ||  argv.source_collection;
   const Prefix = argv.source_key ||  argv.source_indextype;
   if (!Bucket) throw 'S3 Bucket missing';
