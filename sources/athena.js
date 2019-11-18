@@ -52,7 +52,7 @@ module.exports = argv => {
             .pipe(etl.map(d => {
               Object.keys(d).forEach(key => {
                 // Try decoding structured output
-                if (d[key][0] == '[' || d[key[0] == '{']) {
+                if (d[key][0] == '[' || d[key][0] == '{') {
                   try {
                     d[key] = athenaParser.parse(d[key]);
                   } catch(e) {}
