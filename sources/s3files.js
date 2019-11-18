@@ -28,6 +28,7 @@ module.exports = function(argv) {
           if (reFilter.exec(d.Key)) this.push({
             bucket: Bucket,
             filename: d.Key,
+            etag: d.ETag.replace(/"/g,''),
             getClient: () => s3,
             body: () => s3.getObject(params).createReadStream()
           });
