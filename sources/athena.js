@@ -2,6 +2,7 @@ const AWS = require('aws-sdk');
 const etl = require('etl');
 const crypto = require('crypto');
 const Promise = require('bluebird');
+const athenaParser = require('./lib/athenaParser');
 
 module.exports = argv => {
   if (argv.version && argv.version.includes('rand')) argv.version = String(Math.random());
@@ -11,7 +12,8 @@ module.exports = argv => {
   const QueryString = argv.source_query || `select * from ${table}`;
   const OutputLocation = argv.outputLocation || argv.source_config.outputLocation;
 
-  const athena = new AWS.Athena(argv.source_config);
+  const athena = new AWS.Athena(argv.source_config || argv);
+  const s3 = new AWS.S3(argv.source_config || argv);
 
   return () => etl.toStream(QueryString.split(/;\s*\n/g))
     .pipe(etl.map(async function(QueryString) {
@@ -20,7 +22,7 @@ module.exports = argv => {
       let version = argv.version && argv.version.includes('rand') ? Math.random() : argv.version;
       const ClientRequestToken = crypto.createHash('md5').update(QueryString+version).digest('hex');
 
-      if (argv.verbose) console.log(`Executing query ${JSON.stringify(QueryString.slice(0,70))}`)
+      if (argv.verbose) console.log(`Executing query ${JSON.stringify(QueryString.slice(0,70))}`);
       
       const params = {
         QueryString,
@@ -33,37 +35,33 @@ module.exports = argv => {
       const res = await athena.startQueryExecution(params).promise();
       const QueryExecutionId = res.QueryExecutionId;
 
-      const fetch = async(NextToken) => {
-        let d;
+      const fetch = async() => {
         let execution = await athena.getQueryExecution({QueryExecutionId}).promise();
         execution = execution.QueryExecution;
         const state = execution.Status.State;
-        if (state == 'RUNNING') return Promise.delay(250).then(() => fetch(NextToken));
-        if (state == 'FAILED') throw execution.Status.StateChangeReason.message || execution.Status.StateChangeReason;
-        try {
-          d = await athena.getQueryResults({QueryExecutionId, NextToken}).promise();
-        } catch(e) {
-          if (/QUEUED|RUNNING/.test(e.message)) {
-            process.stdout.write('@');
-            await Promise.delay(1000);
-            return fetch(NextToken);
-          } else {
-            throw e;
-          }
+        if (/QUEUED|RUNNING/.test(state))
+          return Promise.delay(250).then(() => fetch());
+        else if (state == 'FAILED')
+          throw execution.Status.StateChangeReason.message || execution.Status.StateChangeReason;
+        else if (state == 'SUCCEEDED') {
+          const [, Bucket, Key] = /s3:\/\/([^/]+)\/(.*)/.exec(execution.ResultConfiguration.OutputLocation);
+          return s3.getObject({Bucket, Key})
+            .createReadStream()
+            .pipe(etl.csv())
+            // TODO nested fields need to be parsed into JSON
+            .pipe(etl.map(d => {
+              Object.keys(d).forEach(key => {
+                // Try decoding structured output
+                if (d[key][0] == '[' || d[key[0] == '{']) {
+                  try {
+                    d[key] = athenaParser.parse(d[key]);
+                  } catch(e) {}
+                }
+              });
+              this.push(d);
+            }))
+            .promise();
         }
-        if (!d.ResultSet) throw 'Athena internal error';
-        if (argv.verbose && !NextToken) console.log(`Done query ${JSON.stringify(QueryString.slice(0,70))}`)
-        const cols = d.ResultSet.ResultSetMetadata.ColumnInfo;
-        d.ResultSet.Rows.forEach(row => {
-          this.push(row.Data.reduce( (p,d,i) => {
-            let value = d[Object.keys(d)[0]];
-            let col = cols[i];
-            if (col.Precision < 2147483647) value = +value;
-            p[col.Name] = value;
-            return p;
-          },{}));
-        });
-        if (d.NextToken) return fetch(d.NextToken);
       };
 
       await fetch();
