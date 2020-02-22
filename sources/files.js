@@ -2,8 +2,8 @@ const etl = require('etl');
 const Promise = require('bluebird');
 const recursive = require('recursive-readdir');
 const recursiveAsync = Promise.promisify(recursive);
-const fs = require('fs');
-const path = require('path');
+const jsonSource = require('./json');
+const getFile = require('./getFile');
 
 module.exports = function(argv) {
   const source_dir = argv.source_dir || argv.source_collection;
@@ -15,7 +15,7 @@ module.exports = function(argv) {
       .pipe(etl.map(filename => {
         if (reFilter.exec(filename)) return {
           filename,
-          body: () => fs.createReadStream(path.join(process.cwd(),filename))
+          body: () => /.json$/.test(filename) ? jsonSource(filename) : getFile(filename)
         };
       }))
   };
