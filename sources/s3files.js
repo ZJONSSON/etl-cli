@@ -1,5 +1,6 @@
 const etl = require('etl');
 const AWS = require('aws-sdk');
+const s3Source = require('./s3');
 
 module.exports = function(argv) {
   argv = Object.assign({},argv);
@@ -30,7 +31,7 @@ module.exports = function(argv) {
             filename: d.Key,
             etag: d.ETag.replace(/"/g,''),
             getClient: () => s3,
-            body: () => s3.getObject(params).createReadStream()
+            body: () => s3Source(params)
           });
         });
 
