@@ -9,7 +9,7 @@ module.exports = function(source,argv) {
   
   // If source
   if (source && !source.match('http') && !fs.existsSync(source) && source.match('/')) {
-    source = source.split('/');
+    source = /^[./]/.exec(source) ? [source] : source.split('/');
     argv.source_index = argv.source_index || source[1];
     argv.source_collection = argv.source_collection || source[1];
     argv.source_database = argv.source_database || argv.source_collection;
@@ -70,10 +70,11 @@ module.exports = function(source,argv) {
 
   // Find the matching source_type and execute
   let sourcePath = path.resolve(__dirname,'sources',`${type}.js`);
+  console.log('sourcepath',source, path.resolve('.',source))
   if (match || fs.existsSync(sourcePath)) {  
     obj = require(sourcePath)(argv);
   } else {
-    obj = require(path.resolve('./',source));
+    obj = require(path.resolve('.',source));
   }
 
   if (!obj.stream)
