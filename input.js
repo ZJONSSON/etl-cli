@@ -70,7 +70,6 @@ module.exports = function(source,argv) {
 
   // Find the matching source_type and execute
   let sourcePath = path.resolve(__dirname,'sources',`${type}.js`);
-  console.log('sourcepath',source, path.resolve('.',source))
   if (match || fs.existsSync(sourcePath)) {  
     obj = require(sourcePath)(argv);
   } else {
