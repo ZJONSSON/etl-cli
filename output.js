@@ -53,13 +53,13 @@ module.exports = async function(obj,argv) {
       .then(() => console.log('total',total));
 
 
-  let Σ = 0,last =0,counter,total;
+  let Σ_out = 0, Σ_in = 0, last =0,counter,total;
   if (!argv.silent) {
     counter = setInterval(() => {
-      let Δ = Σ - last;
-      last = Σ;
+      let Δ = Σ_in - last;
+      last = Σ_in;
       const heap = Math.round(process.memoryUsage().heapUsed/1000000);
-      console.log(`Σ${Σ} Δ${Δ} ${total && (Math.floor(Σ/total*10000)/100)+'%' ||''} - Heap: ${heap} Mb`);
+      console.log(`Σ${Σ_in} Δ${Δ} ${total && (Math.floor(Σ/total*10000)/100)+'%' ||''} (output: Σ${Σ_out}) - Heap: ${heap} Mb`);
     }, argv.report_interval || 1000);
   }
 
@@ -77,6 +77,8 @@ module.exports = async function(obj,argv) {
     console.error('error',e);
     process.exit();
   });
+
+  stream = stream.pipe(etl.map(d => { Σ_in++; return d;}));
 
   if (argv.transform) {
     let transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
@@ -132,17 +134,17 @@ module.exports = async function(obj,argv) {
           delete d[key];
       });
 
-    Σ+=1;
+    Σ_out+=1;
     total = d.__total || total;
 
     if (argv.filter)
       if (d[argv.filter[0]] !== argv.filter[1])
         return;
 
-    if (argv.limit && Σ > argv.limit)
+    if (argv.limit && Σ_out > argv.limit)
       return;
 
-    if (!argv.limit || Σ <= argv.limit)
+    if (!argv.limit || Σ_out <= argv.limit)
       return d;
   },{highWaterMark: argv.highWaterMark || 100}));
 
@@ -166,7 +168,7 @@ module.exports = async function(obj,argv) {
     .then(() => {
       clearInterval(counter);
       if (!argv.silent)
-        console.log(`Completed ${Σ} records`);
+        console.log(`Completed ${Σ_in} records in and ${Σ_out} record out`);
     }, e => {
       if (e.errors) console.log('errors', JSON.stringify(e.errors,null,2));
       else console.error('error',e.errors || e)
