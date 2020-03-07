@@ -1,6 +1,6 @@
 {
   "name": "etl-cli",
-  "version": "0.0.114",
+  "version": "0.0.115",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -19,6 +19,7 @@
     "@google-cloud/bigquery": "^2.0.6",
     "aws-sdk": "^2.573.0",
     "bluebird": "~3.5.2",
+    "bson": "^4.0.3",
     "clues": "~3.5.35",
     "csv-write-stream": "^2.0.0",
     "elasticsearch": "~15.0.0",
