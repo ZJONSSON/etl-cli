@@ -14,15 +14,19 @@ module.exports = async (stream,argv, schema) => {
   const exists = await table.exists();
   if (!exists[0]) {
     if (schema) {
+      schema = await schema;
       await dataset.createTable(argv.target_indextype, {schema});
-      console.log('table created');
     } else {
       throw 'table does really not exists';
     }
   } else {
     if (argv.replace_table) {
-      const metadata = await table.getMetadata();
-      schema = metadata[0].schema;
+      if (schema) {
+        schema = await schema;
+      } else {
+        const metadata = await table.getMetadata();
+        schema = metadata[0].schema;
+      }
       await table.delete();
       await dataset.createTable(argv.target_indextype, {schema});
       console.log('replacing table');
