@@ -15,7 +15,7 @@ module.exports = function(argv) {
       .pipe(etl.map(filename => {
         if (reFilter.exec(filename)) return {
           filename,
-          body: () => /.json$/.test(filename) ? jsonSource(filename) : getFile(filename)
+          body: () => /.json$/.test(filename) ? jsonSource({source: filename})() : getFile(filename)
         };
       }))
   };

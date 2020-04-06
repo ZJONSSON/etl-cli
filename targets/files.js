@@ -23,7 +23,12 @@ module.exports = function(stream,argv) {
     if (files.has(Key)) return {message: 'skipping', Key};
     if (filter_files && !filter_files.test(Key)) return {message: 'ignoring', Key};
 
-    const Body = typeof d.body === 'function' ? await d.body() : d.body;
+    let Body = typeof d.body === 'function' ? await d.body() : d.body;
+
+    if (d.filename.endsWith('.json')) {
+      Body = Body.pipe(etl.stringify(argv.json_indent || 0,null,true))
+    } 
+
     if (!Body) return {Key, message: 'No body'};
     const tmpKey = `${Key}.download`;
     await new Promise( (resolve, reject) => {
