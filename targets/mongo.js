@@ -8,7 +8,7 @@ module.exports = (stream,argv) => {
       .then(db => db.collection(argv.target_collection));
 
   if (useEjson) stream = stream.pipe(etl.map(d => {
-    return EJSON.parse(JSON.stringify(d));
+    return EJSON.deserialize(d);
   }));
 
   let out = stream.pipe(etl.collect(argv.collect || 10));
