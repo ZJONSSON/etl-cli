@@ -1,6 +1,7 @@
-const etl = require('etl');
+const jsonStream = require('./lib/jsonStream');
+const destination = require('./lib/destination')
 
 module.exports = function(stream,argv) {
-  return stream.pipe(etl.stringify(argv.json_indent || 0,null,true))
-    .pipe(argv.source === 'screen' ? etl.map(d => console.log(d)) : etl.toFile(argv.dest));
+  stream = jsonStream(stream, argv);
+  return destination(stream, argv);
 };

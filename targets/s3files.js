@@ -1,5 +1,6 @@
 const etl = require('etl');
 const AWS = require('aws-sdk');
+const fileBody = require('./lib/fileBody');
 
 module.exports = function(stream,argv) {
   argv = Object.assign({},argv);
@@ -31,7 +32,7 @@ module.exports = function(stream,argv) {
     const Key = `${Prefix}/${d.filename}`;
     if (files.has(Key)) return {message: 'skipping', Key};
 
-    const Body = typeof d.body === 'function' ? await d.body() : d.body;
+    const Body = await fileBody(d, argv);
     if (!Body) return {Key, message: 'No body'};
     await s3.upload({ Bucket, Key, Body }).promise();
     return {Key, message: 'OK'};

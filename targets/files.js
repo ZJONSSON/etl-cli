@@ -6,6 +6,7 @@ const recursiveAsync = Promise.promisify(recursive);
 const renameAsync = Promise.promisify(fs.rename);
 const utimesAsync = Promise.promisify(fs.utimes);
 const fstream = require('fstream');
+const fileBody = require('./lib/fileBody');
 
 module.exports = function(stream,argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
@@ -23,11 +24,7 @@ module.exports = function(stream,argv) {
     if (files.has(Key)) return {message: 'skipping', Key};
     if (filter_files && !filter_files.test(Key)) return {message: 'ignoring', Key};
 
-    let Body = typeof d.body === 'function' ? await d.body() : d.body;
-
-    if (d.filename.endsWith('.json')) {
-      Body = Body.pipe(etl.stringify(argv.json_indent || 0,null,true))
-    } 
+    let Body = await fileBody(d, argv);
 
     if (!Body) return {Key, message: 'No body'};
     const tmpKey = `${Key}.download`;
