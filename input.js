@@ -24,6 +24,19 @@ module.exports = function(source,argv) {
   for (let key in conf)
     argv['source_'+key] = argv['source_'+key] || conf[key];
 
+  // provide retry mechanism
+  argv.retry = function(e,d) {
+    const retries = (d.retries || argv.retries || 10) - 1;
+    if (retries <= 0) return console.log(e,d);
+    if (argv.showErrors) {
+      console.log('retry',e);
+    } else {
+      process.stdout.write('#');
+    }
+    Object.defineProperty(d, 'retries', {value: retries, writable: true});
+    this.write(d);
+  }
+
   // Custom config can redefine the source
   if (argv.source_source)
     source = argv.source_source;
