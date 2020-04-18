@@ -4,6 +4,8 @@ const path = require('path');
 const Promise = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
+const Ajv = require('ajv');
+const ajv = new Ajv({allErrors: true}); 
 
 module.exports = async function(obj,argv) {
   argv = Object.assign({},argv || minimist(process.argv.slice(2)));  
@@ -78,7 +80,24 @@ module.exports = async function(obj,argv) {
     process.exit();
   });
 
-  stream = stream.pipe(etl.map(d => { Σ_in++; return d;}));
+  let validate, schema;
+  if (argv.validate) {
+    try {
+      schema = obj.json || JSON.parse(fs.readFileSync(argv.validate))
+      if (typeof schema == 'function') schema = await schema();
+    } catch(e) {
+      console.log(__dirname,e);
+      throw new Error('json schema missing');
+    }
+    validate = ajv.compile(schema);
+  }
+
+  stream = stream.pipe(etl.map(d => {
+    Σ_in++;
+    if (validate && !validate(d)) throw validate.errors;
+    return d;
+  }));
+
 
   if (argv.transform) {
     let transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
@@ -99,8 +118,20 @@ module.exports = async function(obj,argv) {
           stream = stream.pipe(etl.chain(incoming => transform(incoming,argv)));
           return;
         }
+
+        let tfValidate;
+        if (argv.validate) {
+          if (transform.json) {
+            if (typeof transform.json == 'function') schema = transform.json(schema);
+            else schema = transform.json;
+          }
+          tfValidate = ajv.compile(schema);
+        }
+
         stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
-          return transform.call(this,d,argv);
+          d = await transform.call(this,d,argv);
+          if (tfValidate && !tfValidate(d)) throw validate.errors;
+          return d;
         },{
           catch: transform.catch ? function(e,d) { transform.catch.call(this,e,d,argv); } : console.log,
           flush: transform.flush
