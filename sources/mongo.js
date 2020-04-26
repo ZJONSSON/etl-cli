@@ -7,18 +7,18 @@ module.exports = argv => {
   
   ['source_uri','source_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
-  const db = mongodb.connect(argv.source_uri);
+  const client = mongodb.connect(argv.source_uri, {useUnifiedTopology: true});
   let query = argv.source_query;
   if (useEjson && query) query = EJSON.parse(JSON.stringify(argv.source_query));
 
   const fields = argv.fields ? argv.fields.split(',').reduce( (p,key) => { p[key] = 1; return p;},{}) : undefined;
 
   return {
-    recordCount : () => db.then(db => 
-      db.collection(argv.source_collection).count(query)
+    recordCount : () => client.then(client => 
+      client.db().collection(argv.source_collection).countDocuments(query)
     ),
-    stream: () => etl.toStream(db.then(db =>
-      db.collection(argv.source_collection)
+    stream: () => etl.toStream(client.then(client =>
+      client.db().collection(argv.source_collection)
         .find(query, fields)
         .pipe(etl.map(d => {
           if (useEjson) d = JSON.parse(EJSON.stringify(d));
