@@ -25,13 +25,13 @@ module.exports = function(argv) {
         const res = await s3.listObjects(query).promise();
 
         res.Contents.forEach(d => {
-          let params = {Bucket, Key: d.Key};
+          let params = {Bucket, Key: d.Key, source_config: argv.source_config, source_format: 'raw'};
           if (reFilter.exec(d.Key)) this.push({
             bucket: Bucket,
             filename: d.Key,
             etag: d.ETag.replace(/"/g,''),
             getClient: () => s3,
-            body: () => s3Source(params)
+            body: () => s3Source(params)()
           });
         });
 
