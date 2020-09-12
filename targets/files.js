@@ -6,6 +6,7 @@ const recursiveAsync = Promise.promisify(recursive);
 const renameAsync = Promise.promisify(fs.rename);
 const utimesAsync = Promise.promisify(fs.utimes);
 const fstream = require('fstream');
+const convert = require('./lib/convert');
 
 module.exports = function(stream,argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
@@ -23,8 +24,11 @@ module.exports = function(stream,argv) {
     if (files.has(Key)) return {message: 'skipping', Key};
     if (filter_files && !filter_files.test(Key)) return {message: 'ignoring', Key};
 
-    const Body = typeof d.body === 'function' ? await d.body() : d.body;
+    let Body = typeof d.body === 'function' ? await d.body() : d.body;
+    if (typeof Body == 'function') Body = Body();
     if (!Body) return {Key, message: 'No body'};
+    Body = Body.pipe(convert(Body, d.filename, argv));
+
     const tmpKey = `${Key}.download`;
     await new Promise( (resolve, reject) => {
       Body

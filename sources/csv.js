@@ -2,7 +2,7 @@ const etl = require('etl');
 const getFile = require('./getFile');
 
 module.exports = function(argv) {
-  return () => getFile(argv.source)
+    return () => getFile(argv.source)
     .pipe(etl.csv(argv))
     .pipe(etl.map(function(d) {
       return Object.keys(d).reduce( (p,key) => {
