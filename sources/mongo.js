@@ -10,7 +10,6 @@ module.exports = argv => {
   const client = mongodb.connect(argv.source_uri, {useUnifiedTopology: true});
   let query = argv.source_query;
   if (useEjson && query) query = EJSON.parse(JSON.stringify(argv.source_query));
-  console.log({query})
 
   const fields = argv.fields ? argv.fields.split(',').reduce( (p,key) => { p[key] = 1; return p;},{}) : undefined;
 
