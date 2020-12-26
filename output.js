@@ -58,6 +58,7 @@ module.exports = async function(obj,argv) {
     counter = setInterval(() => {
       let Δ = Σ_in - last;
       last = Σ_in;
+      total = argv.recordCount || total;
       const heap = Math.round(process.memoryUsage().heapUsed/1000000);
       console.log(`Σ${Σ_in} Δ${Δ} ${total && (Math.floor(Σ_in/total*10000)/100)+'%' ||''} (output: Σ${Σ_out}) - Heap: ${heap} Mb`);
     }, argv.report_interval || 1000);

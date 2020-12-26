@@ -73,7 +73,7 @@ module.exports = argv => {
         await fetch();
       }))
       .on('finish', () => out.end())
-      .on('error', e => out.error(e));
+      .on('error', e => out.emit('error',e));
     return out;
   };
 };

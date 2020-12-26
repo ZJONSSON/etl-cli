@@ -6,8 +6,8 @@ module.exports = argv => {
   argv.accessKeyId = argv.source_accessKeyId;
   argv.secretAccessKey = argv.source_secretAccessKey;
 
-  argv.source_bucket = argv.source_bucket ||  argv.source_collection;
-  argv.source_key = argv.source_key ||  argv.source_indextype;
+  argv.source_bucket = argv.source_bucket ||  argv.source_collection || argv.Bucket;
+  argv.source_key = argv.source_key ||  argv.source_indextype || argv.Key;
 
   const s3 = new AWS.S3(argv.source_config || argv);
 
