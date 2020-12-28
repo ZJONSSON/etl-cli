@@ -3,6 +3,7 @@ const path = require('path');
 const request = require('request');
 const fetch = require('node-fetch');
 const HttpsProxyAgent = require('https-proxy-agent');
+const etl = require('etl');
 const minimist = require('minimist');
 const nconf = require('nconf')
   .file({file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE,'.etlconfig.json')});
@@ -23,8 +24,9 @@ if (!module.parents) {
 
   argv.userAgent = argv.userAgent || nconf.get('user-agent') || 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36';
 
-  // expose nconf in the argv
+  // expose nconf and etl in the argv
   argv.nconf = nconf;
+  argv.etl = etl;
 
   // getProxy returns a new proxy string where {{random}} has been replaced with a random number
   argv.getProxy = () =>  argv.proxy ? argv.proxy.replace('{{random}}',String(Math.random())) : undefined;
