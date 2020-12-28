@@ -72,7 +72,9 @@ module.exports = async function(obj,argv) {
     console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''}`);
   }
 
-  let stream = await (obj.stream ? obj.stream(argv) : obj(argv));
+  let stream = etl.toStream(function() {
+    return obj.stream ? obj.stream.call(this,argv) : obj.call(this,argv);
+  });
 
   stream.on('error',e => {
     console.error('error',e);
