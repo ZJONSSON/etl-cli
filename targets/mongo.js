@@ -11,7 +11,7 @@ module.exports = (stream,argv) => {
     return EJSON.parse(JSON.stringify(d));
   }));
 
-  let out = stream.pipe(etl.collect(argv.collect || 10));
+  let out = stream;
 
   if (!argv.update && !argv.upsert)
     return out.pipe(etl.mongo.insert(coll));
