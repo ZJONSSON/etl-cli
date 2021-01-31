@@ -27,7 +27,7 @@ module.exports = function(stream,argv) {
     let Body = typeof d.body === 'function' ? await d.body() : d.body;
     if (typeof Body == 'function') Body = Body();
     if (!Body) return {Key, message: 'No body'};
-    Body = Body.pipe(convert(Body, d.filename, argv));
+    Body = convert(Body, d.filename, argv);
 
     const tmpKey = `${Key}.download`;
     await new Promise( (resolve, reject) => {
