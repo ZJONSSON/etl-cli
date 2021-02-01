@@ -2,6 +2,7 @@ const etl = require('etl');
 const Promise = require('bluebird');
 const recursive = require('recursive-readdir');
 const jsonSource = require('./json');
+const csvSource = require('./csv');
 const getFile = require('./getFile');
 
 module.exports = function(argv) {
@@ -15,8 +16,12 @@ module.exports = function(argv) {
       .pipe(etl.map(filename => {
         if (reFilter.exec(filename)) return {
           filename: filename.replace(reSourceDir,''),
-          body: () => /.json$/.test(filename) ? jsonSource({source: filename}) : getFile(filename)
-        };
+          body: () => {
+            if (/.json$/.test(filename)) return jsonSource({source: filename});
+            else if (/.csv$/.test(filename)) return csvSource({source: filename})
+            else return getFile(filename)
+          }
+        }
       }))
   };
 };
