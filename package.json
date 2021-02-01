@@ -1,6 +1,6 @@
 {
   "name": "etl-cli",
-  "version": "0.0.127",
+  "version": "0.0.129",
   "description": "",
   "main": "index.js",
   "scripts": {
