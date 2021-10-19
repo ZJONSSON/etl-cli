@@ -4,8 +4,13 @@ const { EJSON } = require('bson');
 module.exports = (stream,argv) => {
   const useEjson = argv.ejson && /false/i.exec(argv.ejson) ? false : true;
   ['target_uri','target_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
-  const coll = require('mongodb').connect(argv.target_uri)
-      .then(client => client.db().collection(argv.target_collection));
+    let coll = require('mongodb').connect(argv.target_uri);
+
+  if (argv.target_dbName) {
+    coll = coll.then(db => db.db(argv.target_dbName));
+  }
+
+  coll = coll.then(db => db.collection(argv.target_collection));
 
   if (useEjson) stream = stream.pipe(etl.map(d => {
     return EJSON.parse(JSON.stringify(d));
