@@ -7,7 +7,12 @@ module.exports = argv => {
   
   ['source_uri','source_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
-  const client = mongodb.connect(argv.source_uri, {useUnifiedTopology: true});
+  let client = mongodb.connect(argv.source_uri, {useUnifiedTopology: true});
+
+  if (argv.source_db_name) {
+    client = client.then(db => db.db(argv.source_db_name));
+  }
+
   let query = argv.source_query;
   if (useEjson && query) query = EJSON.parse(JSON.stringify(argv.source_query));
 
