@@ -15,11 +15,11 @@ module.exports = function(argv) {
     stream: () => etl.toStream(() => recursive(source_dir))
       .pipe(etl.map(filename => {
         if (reFilter.exec(filename)) return {
-          filename: filename.replace(reSourceDir,''),
+          filename,
           body: () => {
             if (/.json$/.test(filename)) return jsonSource({source: filename});
             else if (/.csv$/.test(filename)) return csvSource({source: filename})
-            else return getFile(filename)
+            else return getFile(filename, source_dir)
           }
         }
       }))
