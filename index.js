@@ -2,6 +2,7 @@
 const path = require('path');
 const request = require('request');
 const fetch = require('node-fetch');
+const fetchCookie = require('fetch-cookie');
 const HttpsProxyAgent = require('https-proxy-agent');
 const etl = require('etl');
 const minimist = require('minimist');
@@ -38,7 +39,8 @@ if (!module.parents) {
     opt.headers = opt.headers || {};
     opt.headers['user-agent'] = opt.headers['user-agent'] || argv.userAgent;
     if (argv.proxy) opt = Object.assign({agent: new HttpsProxyAgent(argv.getProxy())},opt);
-    return fetch(url, opt);
+    const fetchFn = opt.jar ? fetchCookie(fetch, opt.jar, false) : fetch;
+    return fetchFn(url, opt);
   }
 
   // Include default request / requestAsync that use proxy (if supplied) automatically

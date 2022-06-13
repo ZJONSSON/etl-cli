@@ -5,20 +5,21 @@ const etl = require('etl');
 module.exports = argv => {
   const pg = require('pg');
   const QueryStream = require('pg-query-stream');
-  ['source_database', 'source_table'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
-
-  argv.source_table = argv.source_database+'.'+argv.source_table;
-
+  let query = argv.source_query;
+  if (!query) {
+    ['source_database', 'source_table'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
+    query = `select * from ${argv.source_database}.${argv.source_table}`;
+  }
   let conf = argv.source_config;
   let pool = new pg.Pool(conf);
   const p = new etl.postgres.postgres(pool);
   return {
     stream: () => {
-      const query = new QueryStream(`select * from ${argv.source_table}`);
-      return p.stream(query);
+      const pquery = new QueryStream(query);
+      return p.stream(pquery);
     },
     recordCount: () => {
-      return p.query(`select count(*) from ${argv.source_table}`).then(d => d.rows[0].count);
+      return p.query(`select count(*) from (${query}) c`).then(d => d.rows[0].count);
     }
   };
 };

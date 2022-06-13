@@ -6,6 +6,7 @@ const nconf = require('nconf');
 const fs = require('fs');
 
 module.exports = async function(obj,argv) {
+  let validate;
   argv = Object.assign({},argv || minimist(process.argv.slice(2)));  
   let dest = argv.target || argv._[0];
 
@@ -44,6 +45,13 @@ module.exports = async function(obj,argv) {
   // Filter should be an array
   if (argv.filter)
     argv.filter = argv.filter.split('=');
+
+  if (argv.jsonSchema) {
+    const Ajv = require('ajv');
+    const ajv = new Ajv({allErrors:true, coerceTypes: true});
+    validate = ajv.compile(require(path.resolve('.',argv.jsonSchema)));
+    console.log('Validating jsonschema and coercing variables');
+  }
 
   //  If not silent, we write periodic updates to console
   if (obj.recordCount)
@@ -123,6 +131,14 @@ module.exports = async function(obj,argv) {
   stream = stream.pipe(etl.map(function(d) {
     if (argv.setid)
       d._id = d[argv.setid];
+
+    if (validate) {
+      let valid = validate(d);
+      if (!valid) {
+        console.error(validate.errors,d);
+        throw 'VALIDATION_ERROR';
+      }
+    }
 
     if (argv.select)
       d = argv.select.split(',').reduce( (p,key) => {
