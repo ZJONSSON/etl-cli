@@ -9,8 +9,8 @@ module.exports = argv => {
 
   let client = mongodb.connect(argv.source_uri, {useUnifiedTopology: true});
 
-  if (argv.source_dbName) {
-    client = client.then(db => db.db(argv.source_dbName));
+  if (argv.source_db_name) {
+    client = client.then(db => db.db(argv.source_db_name));
   }
 
   let query = argv.source_query;

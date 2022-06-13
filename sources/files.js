@@ -19,7 +19,7 @@ module.exports = function(argv) {
           body: () => {
             if (/.json$/.test(filename)) return jsonSource({source: filename});
             else if (/.csv$/.test(filename)) return csvSource({source: filename})
-            else return getFile(filename, source_dir)
+            else return getFile(filename)
           }
         }
       }))

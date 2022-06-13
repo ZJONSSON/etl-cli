@@ -6,8 +6,8 @@ module.exports = (stream,argv) => {
   ['target_uri','target_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
   let coll = require('mongodb').connect(argv.target_uri);
 
-  if (argv.target_dbName) {
-    coll = coll.then(db => db.db(argv.target_dbName));
+  if (argv.target_db_name) {
+    coll = coll.then(db => db.db(argv.target_db_name));
   }
 
   coll = coll.then(db => db.collection(argv.target_collection));
