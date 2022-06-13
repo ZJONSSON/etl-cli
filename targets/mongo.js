@@ -4,7 +4,7 @@ const { EJSON } = require('bson');
 module.exports = (stream,argv) => {
   const useEjson = argv.ejson && /false/i.exec(argv.ejson) ? false : true;
   ['target_uri','target_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
-    let coll = require('mongodb').connect(argv.target_uri);
+  let coll = require('mongodb').connect(argv.target_uri);
 
   if (argv.target_dbName) {
     coll = coll.then(db => db.db(argv.target_dbName));
