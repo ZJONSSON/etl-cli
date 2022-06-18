@@ -72,7 +72,7 @@ module.exports = async function(obj,argv) {
     }, argv.report_interval || 1000);
   }
 
-  let m = /\.(json|csv|parquet)/.exec(dest);
+  let m = /\.(json|csv|parquet|raw)/.exec(dest);
   argv.target_type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
   let type = argv.target_type;
 
