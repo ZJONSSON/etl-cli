@@ -107,7 +107,8 @@ module.exports = async function(obj,argv) {
 
         // If the transform should be chained, we chain instead of map
         if (transform.chain) {
-          stream = stream.pipe(etl.chain(incoming => transform(incoming,argv)));
+          let chain = typeof transform.chain == 'function' ? transform.chain : transform;    
+          stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
           return;
         }
         stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
