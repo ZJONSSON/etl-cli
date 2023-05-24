@@ -73,7 +73,7 @@ module.exports = async function(obj,argv) {
     }, argv.report_interval || 1000);
   }
 
-  let m = /\.(json|csv|parquet)/.exec(dest);
+  let m = /\.(json|csv|parquet|raw)/.exec(dest);
   argv.target_type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
   let type = argv.target_type;
 
@@ -108,7 +108,8 @@ module.exports = async function(obj,argv) {
 
         // If the transform should be chained, we chain instead of map
         if (transform.chain) {
-          stream = stream.pipe(etl.chain(incoming => transform(incoming,argv)));
+          let chain = typeof transform.chain == 'function' ? transform.chain : transform;    
+          stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
           return;
         }
         stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
