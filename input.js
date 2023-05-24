@@ -20,6 +20,7 @@ module.exports = function(source,argv) {
 
   // Load custom config for the source_type or source
   let conf = nconf.get(argv.source_type || source) || {};
+  argv.source_config = conf;
   
   for (let key in conf)
     argv['source_'+key] = argv['source_'+key] || conf[key];
