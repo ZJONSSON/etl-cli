@@ -37,6 +37,7 @@ module.exports = async function(obj,argv) {
   let conf = nconf.get(dest) || {};
   for (let key in conf)
     argv['target_'+key] = argv['target_'+key] || conf[key];
+  argv.target_config = conf;
 
   // Removal should be a regex
   if (argv.remove)
