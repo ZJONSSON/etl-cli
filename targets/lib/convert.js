@@ -1,5 +1,4 @@
 const csv = require('./csv');
-const json = require('./json');
 const etl = require('etl');
 
 module.exports = (stream, filename, argv) => {

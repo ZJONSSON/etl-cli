@@ -59,7 +59,9 @@ module.exports = argv => {
                   if (d[key][0] == '[' || d[key][0] == '{') {
                     try {
                       d[key] = athenaParser.parse(d[key]);
-                    } catch(e) {}
+                    } catch(e) {
+                      //silently ignore
+                    }
                   }
                 });
                 return d;
