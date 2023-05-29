@@ -45,7 +45,7 @@ module.exports = (stream,argv,schema) => {
       if (argv.delete_target)
         return client.indices.delete({index: argv.target_index, type: target_indextype})
           .then(
-            d => !argv.silent && console.log(`Delete Index ${indexStr} successful`),
+            () => !argv.silent && console.log(`Delete Index ${indexStr} successful`),
             e => !argv.silent && console.log(`Delete Index ${indexStr} failed: ${e.message}`)
           );
     })

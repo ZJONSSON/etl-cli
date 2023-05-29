@@ -47,11 +47,8 @@ module.exports = function(stream,argv) {
     return {Key, message: 'OK'};
 
   },{
-    catch: function(e,d) {
+    catch: function(e) {
       console.error(e);
-      return
-      if (!e.code || e.code.includes('ENAMETOOLONG'))
-        this.write(d);
     }
   }));
     

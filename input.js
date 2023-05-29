@@ -8,22 +8,27 @@ const fs = require('fs');
 module.exports = function(source,argv) {
   
   // If source
-  if (source && !source.match('http') && !fs.existsSync(source) && source.match('/')) {
+  if (source && !source.match('http') && !fs.existsSync(source)) {
     source = /^[./]/.exec(source) ? [source] : source.split('/');
     argv.source_index = argv.source_index || source[1];
     argv.source_collection = argv.source_collection || source[1];
     argv.source_database = argv.source_database || argv.source_collection;
     argv.source_table = argv.source_table || source.slice(2).join('/');
     argv.source_indextype = argv.source_indextype || argv.source_table;
+    argv.source_query = argv.source_query || argv.query;
     source = source[0];
   }
 
   // Load custom config for the source_type or source
-  let conf = nconf.get(argv.source_type || source) || {};
-  argv.source_config = conf;
+  let conf = nconf.get(argv.source_type || source);
   
   for (let key in conf)
     argv['source_'+key] = argv['source_'+key] || conf[key];
+
+  argv.source_config = conf || {
+    host: argv.source_host || argv.host || 'localhost',
+    port: argv.source_port || argv.port
+  };
 
   // Custom config can redefine the source
   if (argv.source_source)

@@ -103,8 +103,14 @@ module.exports = async function(obj,argv) {
         catch: console.log
       }));
     } catch(e) {
-      argv.transform.split(',').forEach(transform => {
-        transform = require(path.resolve('.',transform));
+      argv.transform.split(',').forEach(name => {
+        let transform = require(path.resolve('.',name));
+        transform = transform.transform || transform.default || transform;
+
+        if (typeof transform !== 'function') {
+          console.error(`Transform ${name} is not a function`);
+          process.exit();
+        }
 
         // If the transform should be chained, we chain instead of map
         if (transform.chain) {
