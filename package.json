@@ -38,12 +38,10 @@
     "pegjs": "^0.10.0",
     "pg": "^8.5.1",
     "pg-query-stream": "^2.0.0",
-    "raxl": "0.0.3",
     "recursive-readdir": "^2.2.2",
     "request": "^2.88.0",
     "s3-upload-stream": "~1.0.7",
     "tedious": "^6.2.0",
-    "unzipper": "~0.9.4",
-    "xmler": "^1.2.1"
+    "unzipper": "~0.9.4"
   }
 }
