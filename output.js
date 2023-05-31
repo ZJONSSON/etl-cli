@@ -90,7 +90,17 @@ module.exports = async function(obj,argv) {
     process.exit();
   });
 
-  stream = stream.pipe(etl.map(d => { Σ_in++; return d;}));
+  stream = stream.pipe(etl.map(d => {
+    Σ_in++;
+    if (typeof d.body == 'function') {
+      d.buffer = async function() {
+        let body = await d.body(true);
+        body = await body.pipe(etl.map()).promise();
+        return Buffer.concat(body);
+      }
+    }
+    return d;
+  }));
 
   if (argv.transform) {
     let transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
