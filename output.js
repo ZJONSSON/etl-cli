@@ -117,17 +117,18 @@ module.exports = async function(obj,argv) {
         let transform = require(path.resolve('.',name));
         transform = transform.transform || transform.default || transform;
 
+         // If the transform should be chained, we chain instead of map
+         if (transform.chain) {
+          let chain = typeof transform.chain == 'function' ? transform.chain : transform;    
+          stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
+          return;
+        }
+
         if (typeof transform !== 'function') {
           console.error(`Transform ${name} is not a function`);
           process.exit();
         }
 
-        // If the transform should be chained, we chain instead of map
-        if (transform.chain) {
-          let chain = typeof transform.chain == 'function' ? transform.chain : transform;    
-          stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
-          return;
-        }
         stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
           return transform.call(this,d,argv);
         },{
