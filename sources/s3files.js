@@ -30,6 +30,7 @@ module.exports = function(argv) {
             bucket: Bucket,
             filename: d.Key,
             etag: d.ETag.replace(/"/g,''),
+            size: d.Size,
             getClient: () => s3,
             body: () => s3Source(params)()
           });
