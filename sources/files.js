@@ -15,8 +15,9 @@ module.exports = function(argv) {
         if (reFilter.exec(filename)) return {
           filename,
           body: (raw) => {
-            if (!raw && /.json$/.test(filename)) return jsonSource({source: filename})(argv);
-            else if (!raw && /.csv$/.test(filename)) return csvSource({source: filename})(argv);
+            raw = raw || argv.source_raw;
+            if (!raw && /.json$/.test(filename)) return jsonSource({...argv, source: filename, })();
+            else if (!raw && /.csv$/.test(filename)) return csvSource({...argv, source: filename, })();
             else return getFile(filename)
           }
         }
