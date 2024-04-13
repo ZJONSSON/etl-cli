@@ -4,8 +4,9 @@ const path = require('path');
 const Promise = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
+const { safeRequire } = require('./util');
 
-module.exports = function(source,argv) {
+module.exports = async function(source,argv) {
   
   // If source
   if (source && !source.match('http') && !fs.existsSync(source)) {
@@ -36,7 +37,7 @@ module.exports = function(source,argv) {
 
   if (argv.source_query_file) {
     if (/\.js$/.test(argv.source_query_file)) {
-      argv.source_query = require(path.resolve('.',argv.source_query_file));
+      argv.source_query = await safeRequire(path.resolve('.',argv.source_query_file));
       if (typeof argv.source_query === 'function') {
         argv.source_query = argv.source_query(argv);
       }
@@ -76,12 +77,12 @@ module.exports = function(source,argv) {
 
   // Find the matching source_type and execute
   let sourcePath = path.resolve(__dirname,'sources',`${type}.js`);
-  if (match || fs.existsSync(sourcePath)) {  
-    obj = require(sourcePath)(argv);
+  if (match || fs.existsSync(sourcePath)) {
+      obj = (await safeRequire(sourcePath))(argv);
   } else {
-    obj = require(path.resolve('.',source));
+      obj = await safeRequire(path.resolve('.',source));
   }
-
+  
   if (!obj.stream)
     obj.stream = obj;
 

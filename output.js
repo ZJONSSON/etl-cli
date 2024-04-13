@@ -4,6 +4,7 @@ const path = require('path');
 const Promise = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
+const { safeRequire } = require('./util');
 
 module.exports = async function(obj,argv) {
   let validate;
@@ -113,15 +114,18 @@ module.exports = async function(obj,argv) {
         catch: console.log
       }));
     } catch(e) {
-      argv.transform.split(',').forEach(name => {
-        let transform = require(path.resolve('.',name));
+      const transforms = argv.transform.split(',');
+      for (let i in transforms) {
+        const name = transforms[i];
+        let transform = await safeRequire(path.resolve('.',name));
         transform = transform.transform || transform.default || transform;
+       
 
          // If the transform should be chained, we chain instead of map
          if (transform.chain) {
-          let chain = typeof transform.chain == 'function' ? transform.chain : transform;    
+          let chain = typeof transform.chain == 'function' ? transform.chain : transform;
           stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
-          return;
+          continue;
         }
 
         if (typeof transform !== 'function') {
@@ -135,12 +139,13 @@ module.exports = async function(obj,argv) {
           catch: transform.catch ? function(e,d) { transform.catch.call(this,e,d,argv); } : console.log,
           flush: transform.flush
         }));
-      });
+      };
     }
   }
 
   if (argv.chain) {
-    let chain = require(path.resolve('.',argv.chain));
+    let chain = await safeRequire(path.resolve('.',argv.chain));
+    chain = chain.chain || chain;
     stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
   }
 
