@@ -36,7 +36,7 @@ module.exports = async function(source,argv) {
     source = argv.source_source;
 
   if (argv.source_query_file) {
-    if (/\.js$/.test(argv.source_query_file)) {
+    if (/\.(js|ts)$/.test(argv.source_query_file)) {
       argv.source_query = await safeRequire(path.resolve('.',argv.source_query_file));
       if (typeof argv.source_query === 'function') {
         argv.source_query = argv.source_query(argv);
@@ -56,7 +56,7 @@ module.exports = async function(source,argv) {
     }
   }
 
-  if (!source)
+  if (!source && !argv.source_type)
     return console.error('Source missing.  etl [source] [dest] ');
 
   argv.source = source;

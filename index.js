@@ -18,6 +18,11 @@ module.exports = require('./output');
 if (!module.parents) {
   (async function() {
     const argv = minimist(process.argv.slice(2));
+    require('ts-node').register({
+      transpileOnly: argv.ts_transpile === 'false' ? false : true,
+      project: argv.ts_project
+    });
+
     let source = argv.source;
 
     // replace proxy from config (if found)
