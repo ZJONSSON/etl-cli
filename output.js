@@ -83,7 +83,7 @@ module.exports = async function(obj,argv) {
   }
 
   let stream = etl.toStream(function() {
-    return obj.stream ? obj.stream.call(this,argv) : obj.call(this,argv);
+    return typeof obj.stream == 'function' ? obj.stream.call(this,argv) : obj.stream;
   });
 
   stream.on('error',e => {
