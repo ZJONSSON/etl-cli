@@ -13,7 +13,7 @@ module.exports = function(argv) {
     stream: () => etl.toStream(() => recursive(source_dir))
       .pipe(etl.map(filename => {
         if (reFilter.exec(filename)) return {
-          filename,
+          filename: filename.replace(reSourceDir,''),
           body: (raw) => {
             raw = raw || argv.source_raw;
             if (!raw && /.json$/.test(filename)) return jsonSource({...argv, source: filename, })();
