@@ -14,7 +14,7 @@ const input = require('./input');
 const output = require('./output');
 
 async function main(argv) {
-  require('ts-node').register({
+    require('ts-node').register({
     transpileOnly: argv.ts_transpile === 'false' ? false : true,
     project: argv.ts_project
   });
