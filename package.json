@@ -1,10 +1,10 @@
 {
   "name": "etl-cli",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx tap --coverage-report=lcov --coverage-report=html --allow-incomplete-coverage"
   },
   "bin": {
     "etl": "index.js"
@@ -42,6 +42,12 @@
     "request": "^2.88.0",
     "s3-upload-stream": "~1.0.7",
     "tedious": "^6.2.0",
+    "ts-node": "^10.9.2",
     "unzipper": "~0.9.4"
+  },
+  "devDependencies": {
+    "raxl": "^0.0.3",
+    "tap": "^18.7.2",
+    "xmler": "^1.2.1"
   }
 }

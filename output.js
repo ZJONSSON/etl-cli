@@ -9,7 +9,7 @@ const { safeRequire } = require('./util');
 module.exports = async function(obj,argv) {
   let validate;
   argv = Object.assign({},argv || minimist(process.argv.slice(2)));  
-  let dest = argv.target || argv._[0];
+  let dest = argv.target || argv?._?.[0];
 
   // If a config file is specified we load it
   if (argv.config)
@@ -194,8 +194,9 @@ module.exports = async function(obj,argv) {
 
   argv.dest = dest;
 
+  let output;
   try {
-    type = require(path.resolve(__dirname,'targets',type+'.js'));
+    output = require(path.resolve(__dirname,'targets',type+'.js'));
   } catch(e) {
     if (e.code === 'MODULE_NOT_FOUND')
       throw 'target_type '+type+' not available';
@@ -205,7 +206,7 @@ module.exports = async function(obj,argv) {
 
   if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
 
-  return (await type(stream,argv,obj))
+  return (await output(stream,argv,obj))
     .pipe(etl.map(d => { if (!argv.silent) console.log(JSON.stringify(d,null,2));}))
     .promise()
     .then(() => {
@@ -216,5 +217,11 @@ module.exports = async function(obj,argv) {
       if (e.errors) console.log('errors', JSON.stringify(e.errors,null,2));
       else console.error('error',e.errors || e)
     })
-    .then(() => setImmediate(() => process.exit()));
+    .then(() => {
+      if (type == 'test') {
+        return argv.test;
+      } else {
+        setImmediate(() => process.exit());
+      }
+    });
 };
