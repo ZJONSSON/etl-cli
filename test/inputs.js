@@ -1,7 +1,9 @@
 const tap = require('tap');
 const cli = require('../index');
 const etl = require('etl');
-const { path } = require('./util');
+const { path, requireAll } = require('./util');
+
+requireAll(path('../sources'));
 
 tap.test('inputs', async t => {
   t.test('csv', async () => {

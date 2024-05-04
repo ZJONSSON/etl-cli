@@ -218,7 +218,7 @@ module.exports = async function(obj,argv) {
       else console.error('error',e.errors || e)
     })
     .then(() => {
-      if (type == 'test') {
+      if (type == 'test' || argv.test) {
         return argv.test;
       } else {
         setImmediate(() => process.exit());
