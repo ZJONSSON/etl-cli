@@ -1,0 +1,35 @@
+version: "4"
+
+# IMPORTANT
+# Make sure you run setup-docker.sh before executing this!!!
+#
+# Bump the client image version HERE when changing client/Dockerfile
+
+services:
+  mongodb:
+    image: 'mongo:7'
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=example  
+    command: ["mysqld", "--default-authentication-plugin=mysql_native_password", "--bind-address=0.0.0.0", "--sql_mode="]
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports: ['3306:3306']
+
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+    ports: ['5432:5432']
+
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    environment: ['http.host=0.0.0.0', 'transport.host=127.0.0.1','xpack.security.enabled=false', 'xpack.security.enrollment.enabled=false']
+    ports: ['9200:9200']
+
+volumes:
+  mysql-data:

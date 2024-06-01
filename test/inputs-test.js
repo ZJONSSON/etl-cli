@@ -17,8 +17,8 @@ tap.test('inputs', async t => {
   t.test('json', async () => {
     const res = await cli({ _: [path('./support/test.json')], target_type: 'test', silent: 'true'})
     t.same(res, [
-      {"a":"1","b":"2","c":"3","__line":2},
-      {"a":"4","b":"5","c":"6","__line":3}
+      {"a":"1","b":"2","c":"3"},
+      {"a":"4","b":"5","c":"6"}
     ])
   });
 

@@ -100,6 +100,9 @@ module.exports = async function(obj,argv) {
         return Buffer.concat(body);
       }
     }
+    if (d.__line !== undefined) {
+      Object.defineProperty(d, '__line', {value: d.__line, enumerable: false});
+    }
     return d;
   }));
 

@@ -1,14 +1,13 @@
 const etl = require('etl');
+const { createConfig } = require('../util');
 
 module.exports = argv => {
   const mysql = require('mysql');
   ['source_database', 'source_table'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
   argv.source_table = argv.source_database+'.'+argv.source_table;
-
-  let conf = argv.source_config;
-
-  let pool = mysql.createPool(conf);
+  const config = createConfig(argv.source_config, argv, 'target', ['host','connectionLimit', 'user','password'])
+  let pool = mysql.createPool(config);
   var p = etl.mysql.execute(pool);
 
   const key_query = mysql.format('SHOW KEYS FROM ?? WHERE Key_name="PRIMARY"', [argv.source_table]);
@@ -58,11 +57,13 @@ module.exports = argv => {
           let orderedKeys = keys
             .sort((a,b) => a.Seq_in_index - b.Seq_in_index)
             .map(k => k.Column_name)
-          return p.stream(query)
+          const stream = p.stream(query)
             .pipe(etl.map(d => {
               d._id = d._id || orderedKeys.map(f => d[f]).join('');
               return d
-            }))
+            }));
+          stream.promise().then(() => pool.end());
+          return stream;
         })
     })
   }

@@ -1,14 +1,18 @@
 const etl = require('etl');
+const { createConfig } = require('../util');
 
 module.exports = (stream,argv) => {
   const pg = require('pg');
-  ['target_collection', 'target_indextype'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
-
-  let conf = argv.target_config;
-  let pool = new pg.Pool(conf);
+  const config = createConfig(argv.target_config, argv, 'target', ['host','port','database','user','password']); argv.target_config || {};
+  console.log(config)
+  let pool = new pg.Pool(config);
 
   let fn = argv.upsert ? etl.postgres.upsert : etl.postgres.insert;
+  console.log('argv.upsert', argv.upsert)
   argv = Object.assign({}, argv, {concurrency: argv.target_concurrency || 5});
+  console.log({collection: argv.target_collection, indevType: argv.target_indextype})
 
-  return stream.pipe(fn(pool, argv.target_collection, argv.target_indextype, argv));
+  const ret = stream.pipe(fn(pool, argv.target_collection, argv.target_indextype, argv))
+  ret.promise().then(() => pool.end());
+  return ret;
 };
