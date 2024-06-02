@@ -8,7 +8,7 @@ const HttpsProxyAgent = require('https-proxy-agent');
 const etl = require('etl');
 const minimist = require('minimist');
 const nconf = require('nconf')
-  .file({file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE, '.etlconfig.json')});
+  .file({ file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE, '.etlconfig.json') });
 
 
 const input = require('./input');
@@ -41,15 +41,15 @@ async function main(argv) {
     if (opt.proxy && !argv.proxy) throw '--proxy missing';
     opt.headers = opt.headers || {};
     opt.headers['user-agent'] = opt.headers['user-agent'] || argv.userAgent;
-    if (argv.proxy) opt = Object.assign({agent: new HttpsProxyAgent(argv.getProxy())}, opt);
+    if (argv.proxy) opt = Object.assign({ agent: new HttpsProxyAgent(argv.getProxy()) }, opt);
     const fetchFn = opt.jar ? fetchCookie(fetch, opt.jar, false) : fetch;
     return fetchFn(url, opt);
   };
 
   // Include default request / requestAsync that use proxy (if supplied) automatically
-  argv.request = d => request(Object.assign({proxy: argv.getProxy()}, d));
+  argv.request = d => request(Object.assign({ proxy: argv.getProxy() }, d));
   argv.requestAsync = d => new Promise( (resolve, reject) => {
-    request(Object.assign({proxy: argv.getProxy()}, d), (err, res) => err ? reject(err) : resolve(res));
+    request(Object.assign({ proxy: argv.getProxy() }, d), (err, res) => err ? reject(err) : resolve(res));
   });
 
   // If source is not explicitly defined, we assume its the first argument
@@ -58,6 +58,8 @@ async function main(argv) {
     argv._ = argv?._?.slice(1);
   }
 
+  argv.source_dir = argv.source_dir || source.split('/').slice(1).join('/');
+
   const _input = await input(source, argv);
   if (_input) return output(_input, argv).catch(e => {
     console.error(e);
@@ -65,10 +67,13 @@ async function main(argv) {
   });
 }
 
+function cli(argv) {
+  return main(minimist(argv));
+}
+
 if (!module.parent) {
-  console.log('parents');
-  const argv = minimist(process.argv.slice(2));
-  main(argv);
+  cli(process.argv.slice(2).concat('--exit'));
 }
 
 module.exports = main;
+module.exports.cli = cli;

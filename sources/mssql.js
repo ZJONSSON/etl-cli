@@ -14,7 +14,7 @@ module.exports = argv => {
     stream: async () => {
       await connection;
 
-      const out = etl.map(undefined, {highWaterMark: 100000});
+      const out = etl.map(undefined, { highWaterMark: 100000 });
       const request = new sql.Request();
       request.stream = true;
       request.query(query);

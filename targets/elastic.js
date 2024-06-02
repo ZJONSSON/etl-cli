@@ -21,7 +21,7 @@ module.exports = (stream, argv, schema) => {
 
   // If amazonES parameters are defined, we use the aws connection class
   const awsConfig = config.awsConfig || config.amazonES;
-  if (awsConfig){
+  if (awsConfig) {
     config.connectionClass = httpAwsEs;
     config.awsConfig = new AWS.Config({
       accessKeyId: awsConfig.accessKeyId || awsConfig.accessKey,
@@ -31,7 +31,7 @@ module.exports = (stream, argv, schema) => {
   }
 
   const mapping = Bluebird.resolve(schema.mapping && typeof schema.mapping === 'function' ? schema.mapping() : schema.mapping)
-    .then(mapping => mapping && ({[target_indextype]: mapping || {}}));
+    .then(mapping => mapping && ({ [target_indextype]: mapping || {} }));
 
   const settings = Bluebird.resolve(schema.settings && typeof schema.settings === 'function' ? schema.settings() : schema.settings);
 
@@ -43,7 +43,7 @@ module.exports = (stream, argv, schema) => {
     return Bluebird.try( ()=> {
       // Start by deleting the index if `delete_target` is defined
       if (argv.delete_target)
-        return client.indices.delete({index: argv.target_index, type: target_indextype})
+        return client.indices.delete({ index: argv.target_index, type: target_indextype })
           .then(
             () => !argv.silent && console.log(`Delete Index ${indexStr} successful`),
             e => !argv.silent && console.log(`Delete Index ${indexStr} failed: ${e.message}`)
@@ -76,7 +76,7 @@ module.exports = (stream, argv, schema) => {
                 console.log(`Warning: Index ${indexStr} already exists ${settings && '- settings not updated'}`);
 
               if (mapping)
-                return client.indices.putMapping({index: argv.target_index, type: target_indextype, body: mapping})
+                return client.indices.putMapping({ index: argv.target_index, type: target_indextype, body: mapping })
                   .then( () => !argv.silent && console.log(`Put Mapping ${indexStr} successful`));
             }
           );

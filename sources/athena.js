@@ -15,7 +15,7 @@ module.exports = argv => {
   const s3 = new AWS.S3(argv.source_config || argv);
 
   return () => {
-    const out = etl.map(null, {keepAlive: true});
+    const out = etl.map(null, { keepAlive: true });
 
     etl.toStream(QueryString.split(/;[\s\n]*/g))
       .pipe(etl.map(async function(QueryString) {
@@ -38,7 +38,7 @@ module.exports = argv => {
         const QueryExecutionId = res.QueryExecutionId;
 
         const fetch = async() => {
-          let execution = await athena.getQueryExecution({QueryExecutionId}).promise();
+          let execution = await athena.getQueryExecution({ QueryExecutionId }).promise();
           execution = execution.QueryExecution;
           const state = execution.Status.State;
           if (/QUEUED|RUNNING/.test(state))
@@ -47,7 +47,7 @@ module.exports = argv => {
             throw execution.Status.StateChangeReason.message || execution.Status.StateChangeReason;
           else if (state == 'SUCCEEDED') {
             const [, Bucket, Key] = /s3:\/\/([^/]+)\/(.*)/.exec(execution.ResultConfiguration.OutputLocation);
-            const stream = s3.getObject({Bucket, Key})
+            const stream = s3.getObject({ Bucket, Key })
               .createReadStream()
               .pipe(etl.csv())
               // TODO nested fields need to be parsed into JSON

@@ -21,12 +21,12 @@ module.exports = function(stream, argv) {
   })
     .pipe(etl.map(argv.concurrency || 1, async d => {
       const Key = `${target_dir}/${d.filename}`;
-      if (files.has(Key)) return {message: 'skipping', Key};
-      if (filter_files && !filter_files.test(Key)) return {message: 'ignoring', Key};
+      if (files.has(Key)) return { message: 'skipping', Key };
+      if (filter_files && !filter_files.test(Key)) return { message: 'ignoring', Key };
 
       let Body = typeof d.body === 'function' ? await d.body() : d.body;
       if (typeof Body == 'function') Body = Body();
-      if (!Body) return {Key, message: 'No body'};
+      if (!Body) return { Key, message: 'No body' };
       Body = convert(Body, d.filename, argv);
 
       const tmpKey = `${Key}.download`;
@@ -44,7 +44,7 @@ module.exports = function(stream, argv) {
           })
           .on('error', e => reject(e));
       });
-      return {Key, message: 'OK'};
+      return { Key, message: 'OK' };
 
     }, {
       catch: function(e) {

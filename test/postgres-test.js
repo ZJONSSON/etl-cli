@@ -1,10 +1,10 @@
 const tap = require('tap');
-const cli = require('../index');
+const { cli } = require('./util');
 const etl = require('etl');
-const { path } = require('./util');
 const tmpDir = require('os').tmpdir()+'/';
 console.log(tmpDir);
 const pg = require('pg');
+
 
 tap.before(async () => {
   const pool = new pg.Pool({
@@ -31,16 +31,23 @@ tap.before(async () => {
 tap.test('postgres', async t => {
 
   t.test('writing data', async t => {
-    const _ = [path('./support/test.csv'), 'postgres/test_schema/test'];
-    const res = await cli({ _, password: 'example', user: 'postgres', upsert: true, test: true});
-    t.same(res, true);
+    const cmd = `etl ${__dirname}/support/test.csv postgres/test_schema/test --password=example --user=postgres --upsert`;
+    const res = await cli(cmd);
+    t.same(res, { 'Σ_in': 2, 'Σ_out': 2 });
   });
 
   t.test('reading data', async t => {
-    const res = await cli({ _: ['postgres/test_schema/test', 'test'], password: 'example', user: 'postgres', upsert: true, test: true});
+    const cmd = 'etl postgres/test_schema/test test --password=example --user=postgres --upsert=true';
+    const res = await cli(cmd);
     const data = require('./support/test_collect.json');
-    t.same(res, data);
+    t.same(res.data, data);
   });
 
+  t.test('querying data', async t => {
+    const cmd = 'etl postgres test --password=example --user=postgres --source_query="select * from test_schema.test order by a"';
+    const res = await cli(cmd);
+    const data = require('./support/test_collect.json');
+    t.same(res.data, data);
+  });
 
 });

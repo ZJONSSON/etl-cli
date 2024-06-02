@@ -12,7 +12,7 @@ module.exports = argv => {
   const config = Object.assign({}, argv.source_host ? { host: argv.source_host } : argv.source_config );
 
   const awsConfig = config.awsConfig || config.amazonES;
-  if (awsConfig){
+  if (awsConfig) {
     config.connectionClass = httpAwsEs;
     config.awsConfig = new AWS.Config({
       accessKeyId: awsConfig.accessKeyId || awsConfig.accessKey,
@@ -26,21 +26,21 @@ module.exports = argv => {
     index: argv.source_index,
     type: argv.source_indextype,
     size: argv.source_size || 1000,
-    body: argv.source_query && argv.source_query.query ? argv.source_query : {query: argv.source_query},
+    body: argv.source_query && argv.source_query.query ? argv.source_query : { query: argv.source_query },
     scroll: argv.source_scroll || argv.scroll || '60s'
   };
 
   return {
     elastic: {
       mapping: () => {
-        return client.indices.getMapping({index: argv.source_index, type: argv.source_indextype})
+        return client.indices.getMapping({ index: argv.source_index, type: argv.source_indextype })
           .then(d => {
             d = d[argv.source_index].mappings[argv.source_indextype];
             d._all = undefined;
             return d;
           });
       },
-      settings: () => client.indices.getSettings({index: argv.source_index}).then(d => d[argv.source_index].settings)
+      settings: () => client.indices.getSettings({ index: argv.source_index }).then(d => d[argv.source_index].settings)
     },
     recordCount: () => client.search(payload).then(d => d.hits.total),
     stream: () => etl.elastic.scroll(client, payload)

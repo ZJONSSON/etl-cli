@@ -8,7 +8,7 @@ module.exports.safeRequire = async function(path) {
 };
 
 module.exports.createConfig = function(config, argv, prefix, keys) {
-  config = {...config};
+  config = { ...config };
   keys.forEach(key => {
     if (config[key] == undefined) {
       console.log(key, `${prefix}_${key}`);

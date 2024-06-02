@@ -26,6 +26,6 @@ module.exports = (stream, argv) => {
       ids = ids.split(',');
     else
       ids = '_id';
-    return out.pipe(etl.mongo.update(coll, ids, {upsert: !!argv.upsert}));
+    return out.pipe(etl.mongo.update(coll, ids, { upsert: !!argv.upsert }));
   }
 };

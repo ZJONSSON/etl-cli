@@ -19,13 +19,13 @@ module.exports = function(argv) {
   return {
     stream: () => etl.toStream(async function() {
       let truncated = true;
-      const query = {Bucket, Prefix};
+      const query = { Bucket, Prefix };
 
       while (!argv.no_skip && truncated) {
         const res = await s3.listObjects(query).promise();
 
         res.Contents.forEach(d => {
-          const params = {Bucket, Key: d.Key, source_config: argv.source_config, source_format: 'raw'};
+          const params = { Bucket, Key: d.Key, source_config: argv.source_config, source_format: 'raw' };
           if (reFilter.exec(d.Key)) this.push({
             bucket: Bucket,
             filename: d.Key,

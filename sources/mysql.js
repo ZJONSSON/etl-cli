@@ -29,11 +29,11 @@ module.exports = argv => {
         }
       };
     if (type.includes('int'))
-      return {type: 'long'};
+      return { type: 'long' };
     if (type.includes('float'))
-      return {type: 'float'};
+      return { type: 'float' };
     if (type.includes('date'))
-      return {type: 'date', ignore_malformed: true};
+      return { type: 'date', ignore_malformed: true };
     return type;
   };
 
@@ -43,7 +43,7 @@ module.exports = argv => {
         r[c.COLUMN_NAME] = sqlTypeToElastic(c.COLUMN_TYPE);
         return r;
       }, {}));
-    }).then(d => ({properties: d}));
+    }).then(d => ({ properties: d }));
   };
 
   return {
@@ -51,7 +51,7 @@ module.exports = argv => {
       mapping: () => sqlToElasticSchema(schema_query)
     },
     recordCount : () => p.query(mysql.format('SELECT COUNT(*) AS recordCount FROM ?? '+(argv.where ? ' where '+argv.where : ''), [argv.source_table])).then(d => d[0].recordCount),
-    stream : () => etl.toStream(function(){
+    stream : () => etl.toStream(function() {
       return p.query(key_query)
         .then( keys => {
           const orderedKeys = keys

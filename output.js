@@ -10,6 +10,7 @@ module.exports = async function(obj, argv) {
   let validate;
   argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
   let dest = argv.target || argv?._?.[0];
+  argv.target_dir = argv.target_dir || dest.split('/').slice(1).join('/');
 
   // If a config file is specified we load it
   if (argv.config)
@@ -50,7 +51,7 @@ module.exports = async function(obj, argv) {
 
   if (argv.jsonSchema) {
     const Ajv = require('ajv');
-    const ajv = new Ajv({allErrors:true, coerceTypes: true});
+    const ajv = new Ajv({ allErrors:true, coerceTypes: true });
     validate = ajv.compile(require(path.resolve('.', argv.jsonSchema)));
     console.log('Validating jsonschema and coercing variables');
   }
@@ -101,7 +102,7 @@ module.exports = async function(obj, argv) {
       };
     }
     if (d.__line !== undefined) {
-      Object.defineProperty(d, '__line', {value: d.__line, enumerable: false});
+      Object.defineProperty(d, '__line', { value: d.__line, enumerable: false });
     }
     return d;
   }));
@@ -192,7 +193,7 @@ module.exports = async function(obj, argv) {
 
     if (!argv.limit || Σ_out <= argv.limit)
       return d;
-  }, {highWaterMark: argv.highWaterMark || 100}));
+  }, { highWaterMark: argv.highWaterMark || 100 }));
 
 
   argv.dest = dest;
@@ -221,10 +222,11 @@ module.exports = async function(obj, argv) {
       else console.error('error', e.errors || e);
     })
     .then(() => {
-      if (type == 'test' || argv.test) {
-        return argv.test;
-      } else {
+      if (argv.exit) {
         setImmediate(() => process.exit());
       }
+      const res = { Σ_in, Σ_out };
+      if (argv.test) res.data = argv.test;
+      return res;
     });
 };

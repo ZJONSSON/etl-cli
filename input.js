@@ -64,7 +64,7 @@ module.exports = async function(source, argv) {
   // Resolve any injections
   for (const key in argv) {
     if (argv[key] && key.indexOf('inject_') === 0) {
-      argv[key] = module.exports(argv[key], Object.assign({}, argv, {[key]: null})).stream(argv);
+      argv[key] = module.exports(argv[key], Object.assign({}, argv, { [key]: null })).stream(argv);
     }
   }
 

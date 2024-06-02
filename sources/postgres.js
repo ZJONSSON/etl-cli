@@ -11,7 +11,8 @@ module.exports = argv => {
     ['source_database', 'source_table'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
     query = `select * from ${argv.source_database}.${argv.source_table}`;
   }
-  const config = createConfig(argv.target_config, argv, 'target', ['host', 'port', 'database', 'user', 'password']);
+  const config = createConfig(argv.target_config, argv, 'source', ['host', 'port', 'user', 'password']);
+
   const pool = new pg.Pool(config);
   const p = new etl.postgres.postgres(pool);
   return {

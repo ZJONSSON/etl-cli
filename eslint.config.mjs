@@ -5,6 +5,8 @@ import pluginJs from "@eslint/js";
 export default [
   {
     rules:{
+      "space-before-blocks": 2,
+      "object-curly-spacing": ["error", "always"],
       "semi": 2,
       "no-multiple-empty-lines": 2,
       "no-multi-spaces": 2,
@@ -24,7 +26,7 @@ export default [
       ],
     }
   },
-  {files: ["**/*.js"], languageOptions: {sourceType: "script"}},
-  {languageOptions: { globals: globals.node }},
+  { files: ["**/*.js"], languageOptions: { sourceType: "script" } },
+  { languageOptions: { globals: globals.node } },
   pluginJs.configs.recommended,
 ];

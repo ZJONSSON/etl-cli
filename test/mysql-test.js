@@ -1,8 +1,8 @@
 const tap = require('tap');
-const cli = require('../index');
+const { cli } = require('./util');
 const etl = require('etl');
 const mysql = require('mysql');
-const { path } = require('./util');
+
 
 tap.before(async function() {
   const pool = mysql.createPool({
@@ -27,20 +27,19 @@ tap.before(async function() {
 
 tap.test('mysql', async t => {
   t.test('writing data', async t => {
-    // this is the same as:  etl ./support/test.csv mysql/test_schema/test --target_user=root --target_password=example
-    const _ = [path('./support/test.csv'), 'mysql/test_schema/test'];
-    const res = await cli({ _, target_password: 'example', target_user: 'root', upsert: true, test: true});
-    t.same(res, true);
+    const cmd = `etl ${__dirname}/support/test.csv mysql/test_schema/test --user=root --password=example --upsert=true`;
+    const res = await cli(cmd);
+    t.same(res, { 'Σ_in': 2, 'Σ_out': 2 });
   });
 
   t.test('reading data', async t => {
-    let res = await cli({ _: ['mysql/test_schema/test', 'test'], password: 'example', user: 'root', upsert: true, test: true});
-    res = res.map(d => {
+    const cmd = `etl ${__dirname}/support/test.csv test --user=root --password=example`;
+    let res = await cli(cmd);
+    res = res.data.map(d => {
       delete d._id;
-      return {...d};
+      return { ...d };
     });
     const data = require('./support/test_collect.json');
     t.same(res, data);
   });
-
 });

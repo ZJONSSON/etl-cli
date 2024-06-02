@@ -16,7 +16,7 @@ module.exports = function(stream, argv) {
 
   return etl.toStream(async () => {
     let truncated = true;
-    const query = {Bucket, Prefix};
+    const query = { Bucket, Prefix };
 
     while (!argv.no_skip && truncated) {
       const res = await s3.listObjects(query).promise();
@@ -29,12 +29,12 @@ module.exports = function(stream, argv) {
   })
     .pipe(etl.map(argv.concurrency || 1, async d => {
       const Key = `${Prefix}/${d.filename}`;
-      if (files.has(Key)) return {message: 'skipping', Key};
+      if (files.has(Key)) return { message: 'skipping', Key };
 
       const Body = typeof d.body === 'function' ? await d.body() : d.body;
-      if (!Body) return {Key, message: 'No body'};
+      if (!Body) return { Key, message: 'No body' };
       await s3.upload({ Bucket, Key, Body }).promise();
-      return {Key, message: 'OK'};
+      return { Key, message: 'OK' };
 
     }, {
       catch: function(e, d) {
