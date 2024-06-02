@@ -1,13 +1,14 @@
 #! /usr/bin/env node
 const path = require('path');
 const request = require('request');
+// eslint-disable-next-line no-redeclare
 const fetch = require('node-fetch');
 const fetchCookie = require('fetch-cookie');
 const HttpsProxyAgent = require('https-proxy-agent');
 const etl = require('etl');
 const minimist = require('minimist');
 const nconf = require('nconf')
-  .file({file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE,'.etlconfig.json')});
+  .file({file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE, '.etlconfig.json')});
 
 
 const input = require('./input');
@@ -32,7 +33,7 @@ async function main(argv) {
   argv.etl = etl;
 
   // getProxy returns a new proxy string where {{random}} has been replaced with a random number
-  argv.getProxy = () =>  argv.proxy ? argv.proxy.replace('{{random}}',String(Math.random())) : undefined;
+  argv.getProxy = () => argv.proxy ? argv.proxy.replace('{{random}}', String(Math.random())) : undefined;
 
   // inject node-fetch with proxy injection
   argv.fetch = async (url, opt) => {
@@ -40,34 +41,34 @@ async function main(argv) {
     if (opt.proxy && !argv.proxy) throw '--proxy missing';
     opt.headers = opt.headers || {};
     opt.headers['user-agent'] = opt.headers['user-agent'] || argv.userAgent;
-    if (argv.proxy) opt = Object.assign({agent: new HttpsProxyAgent(argv.getProxy())},opt);
+    if (argv.proxy) opt = Object.assign({agent: new HttpsProxyAgent(argv.getProxy())}, opt);
     const fetchFn = opt.jar ? fetchCookie(fetch, opt.jar, false) : fetch;
     return fetchFn(url, opt);
-  }
+  };
 
   // Include default request / requestAsync that use proxy (if supplied) automatically
-  argv.request = d => request(Object.assign({proxy: argv.getProxy()},d));
+  argv.request = d => request(Object.assign({proxy: argv.getProxy()}, d));
   argv.requestAsync = d => new Promise( (resolve, reject) => {
-    request(Object.assign({proxy: argv.getProxy()},d), (err, res) => err ? reject(err) : resolve(res));
+    request(Object.assign({proxy: argv.getProxy()}, d), (err, res) => err ? reject(err) : resolve(res));
   });
-  
+
   // If source is not explicitly defined, we assume its the first argument
   if (!source) {
     source = argv?._?.[0];
     argv._ = argv?._?.slice(1);
   }
 
-  const _input = await input(source,argv);
-  if (_input) return output(_input,argv).catch(e => {
+  const _input = await input(source, argv);
+  if (_input) return output(_input, argv).catch(e => {
     console.error(e);
     process.exit();
   });
 }
 
 if (!module.parent) {
-  console.log('parents')
+  console.log('parents');
   const argv = minimist(process.argv.slice(2));
-  return main(argv);
+  main(argv);
 }
 
 module.exports = main;

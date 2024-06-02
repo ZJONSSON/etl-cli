@@ -2,9 +2,7 @@ const tap = require('tap');
 const cli = require('../index');
 const etl = require('etl');
 const mysql = require('mysql');
-const { path, requireAll } = require('./util');
-const { readFileSync } = require('fs');
-const tmpDir = require('os').tmpdir()+'/';
+const { path } = require('./util');
 
 tap.before(async function() {
   const pool = mysql.createPool({
@@ -13,7 +11,7 @@ tap.before(async function() {
     user: 'root',
     password: 'example'
   });
-  
+
   const p = etl.mysql.execute(pool);
   await p.query('DROP DATABASE IF EXISTS `test_schema`');
   await p.query('CREATE DATABASE IF NOT EXISTS `test_schema`');
@@ -28,22 +26,21 @@ tap.before(async function() {
 });
 
 tap.test('mysql', async t => {
- 
   t.test('writing data', async t => {
     // this is the same as:  etl ./support/test.csv mysql/test_schema/test --target_user=root --target_password=example
     const _ = [path('./support/test.csv'), 'mysql/test_schema/test'];
-    const res = await cli({ _, target_password: 'example', target_user: 'root', upsert: true,test: true});
+    const res = await cli({ _, target_password: 'example', target_user: 'root', upsert: true, test: true});
     t.same(res, true);
   });
 
   t.test('reading data', async t => {
-    let res = await cli({ _: ['mysql/test_schema/test', 'test'], password: 'example', user: 'root', upsert: true,test: true});
+    let res = await cli({ _: ['mysql/test_schema/test', 'test'], password: 'example', user: 'root', upsert: true, test: true});
     res = res.map(d => {
       delete d._id;
-      return {...d}
+      return {...d};
     });
     const data = require('./support/test_collect.json');
-    t.same(res,data)
-  })
-  
+    t.same(res, data);
+  });
+
 });

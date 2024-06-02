@@ -9,7 +9,7 @@ module.exports = argv => {
   if (!argv.source_index)
     throw 'source_index missing';
 
-  let config = Object.assign({},argv.source_host ? { host: argv.source_host } : argv.source_config );
+  const config = Object.assign({}, argv.source_host ? { host: argv.source_host } : argv.source_config );
 
   const awsConfig = config.awsConfig || config.amazonES;
   if (awsConfig){
@@ -23,12 +23,12 @@ module.exports = argv => {
 
   const client = new require('elasticsearch').Client(config);
   const payload = {
-      index: argv.source_index,
-      type: argv.source_indextype,
-      size: argv.source_size || 1000,
-      body: argv.source_query && argv.source_query.query ? argv.source_query : {query: argv.source_query},
-      scroll: argv.source_scroll || argv.scroll || '60s'
-    };
+    index: argv.source_index,
+    type: argv.source_indextype,
+    size: argv.source_size || 1000,
+    body: argv.source_query && argv.source_query.query ? argv.source_query : {query: argv.source_query},
+    scroll: argv.source_scroll || argv.scroll || '60s'
+  };
 
   return {
     elastic: {
@@ -43,7 +43,7 @@ module.exports = argv => {
       settings: () => client.indices.getSettings({index: argv.source_index}).then(d => d[argv.source_index].settings)
     },
     recordCount: () => client.search(payload).then(d => d.hits.total),
-    stream: () => etl.elastic.scroll(client,payload)
+    stream: () => etl.elastic.scroll(client, payload)
       .pipe(etl.map(d => {
         d._source._id = d._id;
         return d._source;

@@ -1,14 +1,14 @@
 const minimist = require('minimist');
 const etl = require('etl');
 const path = require('path');
-const Promise = require('bluebird');
+const Bluebird = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
 const { safeRequire } = require('./util');
 
-module.exports = async function(obj,argv) {
+module.exports = async function(obj, argv) {
   let validate;
-  argv = Object.assign({},argv || minimist(process.argv.slice(2)));  
+  argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
   let dest = argv.target || argv?._?.[0];
 
   // If a config file is specified we load it
@@ -19,7 +19,7 @@ module.exports = async function(obj,argv) {
   if (dest && dest.match('/')) {
     dest = dest.split('/');
 
-    let trialPath = dest.slice(0,dest.length-1).join('/');
+    const trialPath = dest.slice(0, dest.length-1).join('/');
     // If dest is not a path, we break it up into target_index and target_collection
     if (!fs.existsSync(trialPath)) {
       argv.target_index = argv.target_index || dest[1];
@@ -35,8 +35,8 @@ module.exports = async function(obj,argv) {
   argv.target_gzip = dest && dest.match(/\.gz$/ig);
 
   // Load custom config for the target_type or output
-  let conf = nconf.get(dest) || {};
-  for (let key in conf)
+  const conf = nconf.get(dest) || {};
+  for (const key in conf)
     argv['target_'+key] = argv['target_'+key] || conf[key];
   argv.target_config = conf;
 
@@ -51,22 +51,22 @@ module.exports = async function(obj,argv) {
   if (argv.jsonSchema) {
     const Ajv = require('ajv');
     const ajv = new Ajv({allErrors:true, coerceTypes: true});
-    validate = ajv.compile(require(path.resolve('.',argv.jsonSchema)));
+    validate = ajv.compile(require(path.resolve('.', argv.jsonSchema)));
     console.log('Validating jsonschema and coercing variables');
   }
 
   //  If not silent, we write periodic updates to console
   if (obj.recordCount)
-    Promise.try(() => obj.recordCount(argv))
+    Bluebird.try(() => obj.recordCount(argv))
       .catch(console.log)
       .then(d => total = d)
-      .then(() => console.log('total',total));
+      .then(() => console.log('total', total));
 
 
-  let Σ_out = 0, Σ_in = 0, last =0,counter,total;
+  let Σ_out = 0, Σ_in = 0, last =0, counter, total;
   if (!argv.silent) {
     counter = setInterval(() => {
-      let Δ = Σ_in - last;
+      const Δ = Σ_in - last;
       last = Σ_in;
       total = argv.recordCount || total;
       const heap = Math.round(process.memoryUsage().heapUsed/1000000);
@@ -74,20 +74,20 @@ module.exports = async function(obj,argv) {
     }, argv.report_interval || 1000);
   }
 
-  let m = /\.(json|csv|parquet|raw)/.exec(dest);
-  argv.target_type = argv.target_type ||  (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
-  let type = argv.target_type;
+  const m = /\.(json|csv|parquet|raw)/.exec(dest);
+  argv.target_type = argv.target_type || (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
+  const type = argv.target_type;
 
   if (!argv.silent) {
     console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''}`);
   }
 
   let stream = etl.toStream(function() {
-    return typeof obj.stream == 'function' ? obj.stream.call(this,argv) : obj.stream;
+    return typeof obj.stream == 'function' ? obj.stream.call(this, argv) : obj.stream;
   });
 
-  stream.on('error',e => {
-    console.error('error',e);
+  stream.on('error', e => {
+    console.error('error', e);
     process.exit();
   });
 
@@ -98,7 +98,7 @@ module.exports = async function(obj,argv) {
         let body = await d.body(true);
         body = await body.pipe(etl.map()).promise();
         return Buffer.concat(body);
-      }
+      };
     }
     if (d.__line !== undefined) {
       Object.defineProperty(d, '__line', {value: d.__line, enumerable: false});
@@ -107,27 +107,27 @@ module.exports = async function(obj,argv) {
   }));
 
   if (argv.transform) {
-    let transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
-     try {  
+    const transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
+    try {
       const vm = require('vm');
-      let transform = vm.runInNewContext(`ret = ${argv.transform}`);
-      stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
-        return transform.call(this,d,argv);
-      },{
+      const transform = vm.runInNewContext(`ret = ${argv.transform}`);
+      stream = stream.pipe(etl.map(transform_concurrency, async function(d) {
+        return transform.call(this, d, argv);
+      }, {
         catch: console.log
       }));
-    } catch(e) {
+    } catch(_e) {
       const transforms = argv.transform.split(',');
-      for (let i in transforms) {
+      for (const i in transforms) {
         const name = transforms[i];
-        let transform = await safeRequire(path.resolve('.',name));
+        let transform = await safeRequire(path.resolve('.', name));
         transform = transform.transform || transform.default || transform;
-       
 
-         // If the transform should be chained, we chain instead of map
-         if (transform.chain) {
-          let chain = typeof transform.chain == 'function' ? transform.chain : transform;
-          stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
+
+        // If the transform should be chained, we chain instead of map
+        if (transform.chain) {
+          const chain = typeof transform.chain == 'function' ? transform.chain : transform;
+          stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
           continue;
         }
 
@@ -136,10 +136,10 @@ module.exports = async function(obj,argv) {
           process.exit();
         }
 
-        stream = stream.pipe(etl.map(transform_concurrency,async function(d) {
-          return transform.call(this,d,argv);
-        },{
-          catch: transform.catch ? function(e,d) { transform.catch.call(this,e,d,argv); } : console.log,
+        stream = stream.pipe(etl.map(transform_concurrency, async function(d) {
+          return transform.call(this, d, argv);
+        }, {
+          catch: transform.catch ? function(e, d) { transform.catch.call(this, e, d, argv); } : console.log,
           flush: transform.flush
         }));
       };
@@ -147,9 +147,9 @@ module.exports = async function(obj,argv) {
   }
 
   if (argv.chain) {
-    let chain = await safeRequire(path.resolve('.',argv.chain));
+    let chain = await safeRequire(path.resolve('.', argv.chain));
     chain = chain.chain || chain;
-    stream = stream.pipe(etl.chain(incoming => chain(incoming,argv)));
+    stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
   }
 
   if (obj[type] && typeof obj[type].transform === 'function')
@@ -160,19 +160,19 @@ module.exports = async function(obj,argv) {
       d._id = d[argv.setid];
 
     if (validate) {
-      let valid = validate(d);
+      const valid = validate(d);
       if (!valid) {
-        console.error(validate.errors,d);
+        console.error(validate.errors, d);
         throw 'VALIDATION_ERROR';
       }
     }
 
     if (argv.select)
-      d = argv.select.split(',').reduce( (p,key) => {
+      d = argv.select.split(',').reduce( (p, key) => {
         if (d[key] !== undefined)
           p[key] = d[key];
         return p;
-      },{});
+      }, {});
 
     if (argv.remove)
       Object.keys(d).forEach(key => {
@@ -192,14 +192,14 @@ module.exports = async function(obj,argv) {
 
     if (!argv.limit || Σ_out <= argv.limit)
       return d;
-  },{highWaterMark: argv.highWaterMark || 100}));
+  }, {highWaterMark: argv.highWaterMark || 100}));
 
 
   argv.dest = dest;
 
   let output;
   try {
-    output = require(path.resolve(__dirname,'targets',type+'.js'));
+    output = require(path.resolve(__dirname, 'targets', type+'.js'));
   } catch(e) {
     if (e.code === 'MODULE_NOT_FOUND')
       throw 'target_type '+type+' not available';
@@ -209,16 +209,16 @@ module.exports = async function(obj,argv) {
 
   if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
 
-  return (await output(stream,argv,obj))
-    .pipe(etl.map(d => { if (!argv.silent) console.log(JSON.stringify(d,null,2));}))
+  return (await output(stream, argv, obj))
+    .pipe(etl.map(d => { if (!argv.silent) console.log(JSON.stringify(d, null, 2));}))
     .promise()
     .then(() => {
       clearInterval(counter);
       if (!argv.silent)
         console.log(`Completed ${Σ_in} records in and ${Σ_out} record out`);
     }, e => {
-      if (e.errors) console.log('errors', JSON.stringify(e.errors,null,2));
-      else console.error('error',e.errors || e)
+      if (e.errors) console.log('errors', JSON.stringify(e.errors, null, 2));
+      else console.error('error', e.errors || e);
     })
     .then(() => {
       if (type == 'test' || argv.test) {

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx tap --coverage-report=lcov --coverage-report=html --allow-incomplete-coverage"
+    "test": "cd test && docker compose up -d && npx tap --coverage-report=lcov --coverage-report=html --allow-incomplete-coverage"
   },
   "bin": {
     "etl": "index.js"
@@ -46,6 +46,9 @@
     "unzipper": "~0.12.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.4.0",
+    "eslint": "^9.4.0",
+    "globals": "^15.3.0",
     "raxl": "^0.0.3",
     "tap": "^18.7.2",
     "xmler": "^1.2.1"

@@ -1,6 +1,6 @@
 const etl = require('etl');
 
-module.exports = function(stream,argv) {
+module.exports = function(stream, argv) {
   argv.test = [];
-  return stream.pipe(etl.map(d => argv.test.push(d)))
+  return stream.pipe(etl.map(d => argv.test.push(d)));
 };

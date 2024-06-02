@@ -15,7 +15,7 @@ module.exports = function(argv) {
   directory
     .then( () => raxl(directory, argv))
     .then(workbook => workbook.sheet1().pipe(out))
-    .catch(e => out.emit('error',e));
+    .catch(e => out.emit('error', e));
 
   return {stream: () => out};
 

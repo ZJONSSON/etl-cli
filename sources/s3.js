@@ -2,12 +2,12 @@ const AWS = require('aws-sdk');
 const etl = require('etl');
 
 module.exports = argv => {
-  argv = Object.assign({},argv);
+  argv = Object.assign({}, argv);
   argv.accessKeyId = argv.source_accessKeyId;
   argv.secretAccessKey = argv.source_secretAccessKey;
 
-  argv.source_bucket = argv.source_bucket ||  argv.source_collection || argv.Bucket;
-  argv.source_key = argv.source_key ||  argv.source_indextype || argv.Key;
+  argv.source_bucket = argv.source_bucket || argv.source_collection || argv.Bucket;
+  argv.source_key = argv.source_key || argv.source_indextype || argv.Key;
 
   const s3 = new AWS.S3(argv.source_config || argv);
 
@@ -15,14 +15,14 @@ module.exports = argv => {
     Bucket : argv.source_bucket,
     Key: argv.source_key
   })
-  .createReadStream()
-  .pipe(etl.chain(inbound => {
-    if (argv.source_format === 'raw') {
-      return inbound;
-    } else {
-      return inbound
-        .pipe(etl.split())
-        .pipe(etl.map(d => JSON.parse(d.text)));
-    }
-  }));
+    .createReadStream()
+    .pipe(etl.chain(inbound => {
+      if (argv.source_format === 'raw') {
+        return inbound;
+      } else {
+        return inbound
+          .pipe(etl.split())
+          .pipe(etl.map(d => JSON.parse(d.text)));
+      }
+    }));
 };

@@ -1,9 +1,9 @@
 const etl = require('etl');
 const { EJSON } = require('bson');
 
-module.exports = (stream,argv) => {
+module.exports = (stream, argv) => {
   const useEjson = argv.ejson && /false/i.exec(argv.ejson) ? false : true;
-  ['target_uri','target_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
+  ['target_uri', 'target_collection'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
   let coll = require('mongodb').connect(argv.target_uri);
 
   if (argv.target_db_name) {
@@ -16,7 +16,7 @@ module.exports = (stream,argv) => {
     return EJSON.parse(JSON.stringify(d));
   }));
 
-  let out = stream;
+  const out = stream;
 
   if (!argv.update && !argv.upsert)
     return out.pipe(etl.mongo.insert(coll));
@@ -26,6 +26,6 @@ module.exports = (stream,argv) => {
       ids = ids.split(',');
     else
       ids = '_id';
-    return out.pipe(etl.mongo.update(coll,ids,{upsert: !!argv.upsert}));
+    return out.pipe(etl.mongo.update(coll, ids, {upsert: !!argv.upsert}));
   }
 };

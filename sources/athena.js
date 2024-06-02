@@ -1,13 +1,12 @@
 const AWS = require('aws-sdk');
 const etl = require('etl');
-const crypto = require('crypto');
-const Promise = require('bluebird');
+const Bluebird = require('bluebird');
 const athenaParser = require('./lib/athenaParser');
 
 module.exports = argv => {
   if (argv.version && argv.version.includes('rand')) argv.version = String(Math.random());
-  const Database =  argv.database ||  argv.source_collection;
-  const table  = argv.table ||  argv.source_indextype;
+  const Database = argv.database || argv.source_collection;
+  const table = argv.table || argv.source_indextype;
   if (!table && !argv.source_query) throw '--table or --query missing';
   const QueryString = argv.source_query || `select * from ${table}`;
   const OutputLocation = argv.outputLocation || argv.source_config.outputLocation;
@@ -22,11 +21,11 @@ module.exports = argv => {
       .pipe(etl.map(async function(QueryString) {
         if (!QueryString.trim().length) return;
 
-        let version = argv.version && argv.version.includes('rand') ? Math.random() : argv.version;
+        const version = argv.version && argv.version.includes('rand') ? Math.random() : argv.version;
         const ClientRequestToken = crypto.createHash('md5').update(QueryString+version).digest('hex');
 
-        if (argv.verbose) console.log(`Executing query ${JSON.stringify(QueryString.slice(0,70))}`);
-        
+        if (argv.verbose) console.log(`Executing query ${JSON.stringify(QueryString.slice(0, 70))}`);
+
         const params = {
           QueryString,
           ClientRequestToken,
@@ -43,7 +42,7 @@ module.exports = argv => {
           execution = execution.QueryExecution;
           const state = execution.Status.State;
           if (/QUEUED|RUNNING/.test(state))
-            return Promise.delay(250).then(() => fetch());
+            return Bluebird.delay(250).then(() => fetch());
           else if (state == 'FAILED')
             throw execution.Status.StateChangeReason.message || execution.Status.StateChangeReason;
           else if (state == 'SUCCEEDED') {
@@ -59,7 +58,7 @@ module.exports = argv => {
                   if (d[key][0] == '[' || d[key][0] == '{') {
                     try {
                       d[key] = athenaParser.parse(d[key]);
-                    } catch(e) {
+                    } catch(_e) {
                       //silently ignore
                     }
                   }
@@ -68,14 +67,14 @@ module.exports = argv => {
               }));
 
             stream.pipe(out);
-            return new Promise( (resolve, reject) => stream.on('finish',resolve).on('error',reject));
+            return new Promise( (resolve, reject) => stream.on('finish', resolve).on('error', reject));
           }
         };
 
         await fetch();
       }))
       .on('finish', () => out.end())
-      .on('error', e => out.emit('error',e));
+      .on('error', e => out.emit('error', e));
     return out;
   };
 };

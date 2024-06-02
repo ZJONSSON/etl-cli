@@ -3,14 +3,14 @@ const AWS = require('aws-sdk');
 const s3Source = require('./s3');
 
 module.exports = function(argv) {
-  argv = Object.assign({},argv);
-  
+  argv = Object.assign({}, argv);
+
   if (argv.target_accessKeyId) argv.accessKeyId = argv.target_accessKeyId;
   if (argv.target_secretAccessKey) argv.secretAccessKey = argv.target_secretAccessKey;
 
   const s3 = new AWS.S3(argv.source_config || argv);
-  const Bucket = argv.source_bucket ||  argv.source_collection;
-  const Prefix = argv.source_key ||  argv.source_indextype;
+  const Bucket = argv.source_bucket || argv.source_collection;
+  const Prefix = argv.source_key || argv.source_indextype;
   if (!Bucket) throw 'S3 Bucket missing';
   if (!Prefix) throw 'S3 Prefix missing';
 
@@ -19,17 +19,17 @@ module.exports = function(argv) {
   return {
     stream: () => etl.toStream(async function() {
       let truncated = true;
-      let query = {Bucket, Prefix};
+      const query = {Bucket, Prefix};
 
       while (!argv.no_skip && truncated) {
         const res = await s3.listObjects(query).promise();
 
         res.Contents.forEach(d => {
-          let params = {Bucket, Key: d.Key, source_config: argv.source_config, source_format: 'raw'};
+          const params = {Bucket, Key: d.Key, source_config: argv.source_config, source_format: 'raw'};
           if (reFilter.exec(d.Key)) this.push({
             bucket: Bucket,
             filename: d.Key,
-            etag: d.ETag.replace(/"/g,''),
+            etag: d.ETag.replace(/"/g, ''),
             size: d.Size,
             getClient: () => s3,
             body: () => s3Source(params)()
