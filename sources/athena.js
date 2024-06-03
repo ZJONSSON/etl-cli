@@ -22,6 +22,7 @@ module.exports = argv => {
         if (!QueryString.trim().length) return;
 
         const version = argv.version && argv.version.includes('rand') ? Math.random() : argv.version;
+        //@ts-ignore
         const ClientRequestToken = crypto.createHash('md5').update(QueryString+version).digest('hex');
 
         if (argv.verbose) console.log(`Executing query ${JSON.stringify(QueryString.slice(0, 70))}`);
@@ -38,13 +39,13 @@ module.exports = argv => {
         const QueryExecutionId = res.QueryExecutionId;
 
         const fetch = async() => {
-          let execution = await athena.getQueryExecution({ QueryExecutionId }).promise();
-          execution = execution.QueryExecution;
+          const getExecution = await athena.getQueryExecution({ QueryExecutionId }).promise();
+          const execution = getExecution.QueryExecution;
           const state = execution.Status.State;
           if (/QUEUED|RUNNING/.test(state))
             return Bluebird.delay(250).then(() => fetch());
           else if (state == 'FAILED')
-            throw execution.Status.StateChangeReason.message || execution.Status.StateChangeReason;
+            throw execution.Status.StateChangeReason;
           else if (state == 'SUCCEEDED') {
             const [, Bucket, Key] = /s3:\/\/([^/]+)\/(.*)/.exec(execution.ResultConfiguration.OutputLocation);
             const stream = s3.getObject({ Bucket, Key })

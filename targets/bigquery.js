@@ -15,7 +15,7 @@ module.exports = async (stream, argv, schema) => {
   if (!exists[0]) {
     if (schema) {
       schema = await schema;
-      await dataset.createTable(argv.target_indextype, { schema });
+      await dataset.createTable(argv.target_indextype, { schema, friendlyName: argv.target_indextype });
     } else {
       throw 'table does really not exists';
     }
@@ -28,7 +28,7 @@ module.exports = async (stream, argv, schema) => {
         schema = metadata[0].schema;
       }
       await table.delete();
-      await dataset.createTable(argv.target_indextype, { schema });
+      await dataset.createTable(argv.target_indextype, { schema, friendlyName: argv.target_indextype });
       console.log('replacing table');
     }
   }

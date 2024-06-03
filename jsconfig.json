@@ -1,13 +1,15 @@
 {
-    "compilerOptions": {
-      "checkJs": true,
-      "target": "ES2022",
-      "moduleResolution":"node",
-      "types": ["node"],
-      "maxNodeModuleJsDepth": 0,
-    },
-    "exclude": [
-      "node_modules",
-      "coverage"
-    ]
-  }
+  "compilerOptions": {
+    "checkJs": true,
+    "target": "ES2022",
+    "module": "es2020",
+    "moduleResolution":"node",
+    "types": ["node"],
+    "maxNodeModuleJsDepth": 0,
+    "resolveJsonModule": true,
+  },
+  "exclude": [
+    "node_modules",
+    "coverage"
+  ]
+}

@@ -10,7 +10,10 @@ module.exports = async function(obj, argv) {
   let validate;
   argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
   let dest = argv.target || argv?._?.[0];
-  argv.target_dir = argv.target_dir || dest.split('/').slice(1).join('/');
+  if (!argv.target_dir && dest) {
+    argv.target_dir = dest.split('/').slice(1).join('/');
+  }
+  argv.target_params = dest?.split('/')?.slice(1) || [];
 
   // If a config file is specified we load it
   if (argv.config)
@@ -50,7 +53,7 @@ module.exports = async function(obj, argv) {
     argv.filter = argv.filter.split('=');
 
   if (argv.jsonSchema) {
-    const Ajv = require('ajv');
+    const { Ajv } = require('ajv');
     const ajv = new Ajv({ allErrors:true, coerceTypes: true });
     validate = ajv.compile(require(path.resolve('.', argv.jsonSchema)));
     console.log('Validating jsonschema and coercing variables');

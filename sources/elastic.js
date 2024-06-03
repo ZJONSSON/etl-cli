@@ -21,7 +21,8 @@ module.exports = argv => {
     });
   }
 
-  const client = new require('elasticsearch').Client(config);
+  const elastic = require('@elastic/elasticsearch');
+  const client = new elastic.Client(config);
   const payload = {
     index: argv.source_index,
     type: argv.source_indextype,
@@ -33,7 +34,7 @@ module.exports = argv => {
   return {
     elastic: {
       mapping: () => {
-        return client.indices.getMapping({ index: argv.source_index, type: argv.source_indextype })
+        return client.indices.getMapping({ index: argv.source_index })
           .then(d => {
             d = d[argv.source_index].mappings[argv.source_indextype];
             d._all = undefined;

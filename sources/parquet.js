@@ -4,7 +4,7 @@ const path = require('path');
 
 module.exports = function(argv) {
   let reader, cursor;
-  return () => Stream.Readable({
+  return () => new Stream.Readable({
     read : async function() {
       try {
         if (!reader) {

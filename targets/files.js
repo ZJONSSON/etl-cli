@@ -10,7 +10,7 @@ const convert = require('./lib/convert');
 
 module.exports = function(stream, argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
-  const target_dir = argv.target_dir || argv.target_collection;
+  const target_dir = argv.target_dir;
   if (!target_dir) throw 'Not target_dir';
   let files = new Set([]);
 
@@ -38,7 +38,7 @@ module.exports = function(stream, argv) {
             await renameAsync(tmpKey, Key);
             if (d.timestamp) {
               const timestamp = new Date(+d.timestamp);
-              if (!isNaN(timestamp)) await utimesAsync(Key, timestamp, timestamp);
+              if (!isNaN(+timestamp)) await utimesAsync(Key, timestamp, timestamp);
             }
             resolve();
           })

@@ -35,7 +35,8 @@ module.exports = (stream, argv, schema) => {
 
   const settings = Bluebird.resolve(schema.settings && typeof schema.settings === 'function' ? schema.settings() : schema.settings);
 
-  const client = new require('elasticsearch').Client(config);
+  const elasticsearch = require('@elastic/elasticsearch');
+  const client = new elasticsearch.Client(config);
 
   return etl.toStream(function() {
     const indexStr = `${argv.target_index}/${target_indextype}`;
@@ -43,7 +44,7 @@ module.exports = (stream, argv, schema) => {
     return Bluebird.try( ()=> {
       // Start by deleting the index if `delete_target` is defined
       if (argv.delete_target)
-        return client.indices.delete({ index: argv.target_index, type: target_indextype })
+        return client.indices.delete({ index: argv.target_index })
           .then(
             () => !argv.silent && console.log(`Delete Index ${indexStr} successful`),
             e => !argv.silent && console.log(`Delete Index ${indexStr} failed: ${e.message}`)
@@ -76,7 +77,7 @@ module.exports = (stream, argv, schema) => {
                 console.log(`Warning: Index ${indexStr} already exists ${settings && '- settings not updated'}`);
 
               if (mapping)
-                return client.indices.putMapping({ index: argv.target_index, type: target_indextype, body: mapping })
+                return client.indices.putMapping({ index: argv.target_index, body: mapping })
                   .then( () => !argv.silent && console.log(`Put Mapping ${indexStr} successful`));
             }
           );

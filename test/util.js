@@ -17,6 +17,7 @@ module.exports.requireAll = (directory) => {
 };
 
 module.exports.cli = cmds => {
+  //@ts-ignore
   const args = split(cmds, { quotes: '"', separator:' ' }).slice(1).map(d => d.replace(/"/g, ''));
   return cli(args);
 };

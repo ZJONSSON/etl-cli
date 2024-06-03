@@ -41,7 +41,8 @@ async function main(argv) {
     if (opt.proxy && !argv.proxy) throw '--proxy missing';
     opt.headers = opt.headers || {};
     opt.headers['user-agent'] = opt.headers['user-agent'] || argv.userAgent;
-    if (argv.proxy) opt = Object.assign({ agent: new HttpsProxyAgent(argv.getProxy()) }, opt);
+    const agent = HttpsProxyAgent(argv.getProxy());
+    if (argv.proxy) opt = Object.assign({ agent }, opt);
     const fetchFn = opt.jar ? fetchCookie(fetch, opt.jar, false) : fetch;
     return fetchFn(url, opt);
   };
@@ -59,6 +60,7 @@ async function main(argv) {
   }
 
   argv.source_dir = argv.source_dir || source.split('/').slice(1).join('/');
+  argv.source_params = source.split('/').slice(1);
 
   const _input = await input(source, argv);
   if (_input) return output(_input, argv).catch(e => {
@@ -71,6 +73,7 @@ function cli(argv) {
   return main(minimist(argv));
 }
 
+//@ts-ignore
 if (!module.parent) {
   cli(process.argv.slice(2).concat('--exit'));
 }

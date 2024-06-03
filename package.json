@@ -18,7 +18,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^8.11.0",
     "@google-cloud/bigquery": "^2.0.6",
-    "ajv": "^8.6.3",
+    "ajv": "^8.14.0",
     "aws-sdk": "^2.573.0",
     "bluebird": "~3.7.2",
     "bson": "^4.0.3",
@@ -47,11 +47,13 @@
     "unzipper": "~0.12.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.4.0",
-    "eslint": "^9.4.0",
+    "@eslint/js": "^9.2.0",
+    "@types/node": "^20.12.11",
+    "eslint": "^9.2.0",
     "globals": "^15.3.0",
     "raxl": "^0.0.3",
     "tap": "^18.7.2",
+    "typescript": "^5.4.5",
     "xmler": "^1.2.1"
   }
 }

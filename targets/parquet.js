@@ -1,5 +1,5 @@
 const etl = require('etl');
-const parquet = require('/home/zjonsson/git/parquetjs');
+const parquet = require('parquetjs-lite');
 console.log('parquet');
 
 module.exports = (stream, argv, schema) => {

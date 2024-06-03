@@ -8,6 +8,7 @@ version: "4"
 services:
   mongodb:
     image: 'mongo:7'
+    ports: ['27017:27017']
 
   mysql:
     image: mysql:8.0
