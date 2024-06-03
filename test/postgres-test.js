@@ -1,14 +1,14 @@
 const tap = require('tap');
 const { cli } = require('./util');
 const etl = require('etl');
-const tmpDir = require('os').tmpdir()+'/';
-console.log(tmpDir);
 const pg = require('pg');
+const waitPort = require('wait-port');
 
 
 tap.before(async () => {
+  await waitPort({ host: '127.0.0.1', port: 5432 });
   const pool = new pg.Pool({
-    host: 'localhost',
+    host: '127.0.0.1',
     port: 5432,
     database: 'postgres',
     user: 'postgres',
@@ -39,15 +39,17 @@ tap.test('postgres', async t => {
   t.test('reading data', async t => {
     const cmd = 'etl postgres/test_schema/test test --password=example --user=postgres --upsert=true';
     const res = await cli(cmd);
-    const data = require('./support/test_collect.json');
-    t.same(res.data, data);
+    const data = res.data.sort((a, b) => (a.a > b.a) ? 1 : -1);
+    const expected = require('./support/test_collect.json');
+    t.same(data, expected);
   });
 
   t.test('querying data', async t => {
     const cmd = 'etl postgres test --password=example --user=postgres --source_query="select * from test_schema.test order by a"';
     const res = await cli(cmd);
-    const data = require('./support/test_collect.json');
-    t.same(res.data, data);
+    const data = res.data.sort((a, b) => (a.a > b.a) ? 1 : -1);
+    const expected = require('./support/test_collect.json');
+    t.same(data, expected);
   });
 
 });
