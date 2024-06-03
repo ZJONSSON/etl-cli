@@ -8,7 +8,7 @@ const HttpsProxyAgent = require('https-proxy-agent');
 const etl = require('etl');
 const minimist = require('minimist');
 const nconf = require('nconf')
-  .file({ file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE, '.etlconfig.json') });
+  .file({ file: process.env.ETL_CONFIG || path.resolve(process.env.HOME || process.env.USERPROFILE || '~', '.etlconfig.json') });
 
 
 const input = require('./input');
@@ -59,8 +59,10 @@ async function main(argv) {
     argv._ = argv?._?.slice(1);
   }
 
-  argv.source_dir = argv.source_dir || source.split('/').slice(1).join('/');
-  argv.source_params = source.split('/').slice(1);
+  if (source) {
+    argv.source_dir = argv.source_dir || source.split('/').slice(1).join('/');
+    argv.source_params = source.split('/').slice(1);
+  }
 
   const _input = await input(source, argv);
   if (_input) return output(_input, argv).catch(e => {

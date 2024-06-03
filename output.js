@@ -205,7 +205,7 @@ module.exports = async function(obj, argv) {
   try {
     output = require(path.resolve(__dirname, 'targets', type+'.js'));
   } catch(e) {
-    if (e.code === 'MODULE_NOT_FOUND')
+    if (e?.code === 'MODULE_NOT_FOUND')
       throw 'target_type '+type+' not available';
     else
       throw e;
