@@ -43,7 +43,7 @@
     "s3-upload-stream": "~1.0.7",
     "tedious": "^6.2.0",
     "ts-node": "^10.9.2",
-    "unzipper": "~0.9.4"
+    "unzipper": "~0.12.1"
   },
   "devDependencies": {
     "raxl": "^0.0.3",
