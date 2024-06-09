@@ -1,9 +1,7 @@
 const { createConfig } = require('../util');
 const etl = require('etl');
 const { Upload } = require("@aws-sdk/lib-storage");
-const {
-  S3Client
-} = require('@aws-sdk/client-s3');
+const { S3Client } = require('@aws-sdk/client-s3');
 
 module.exports = async function(stream, argv) {
   const config = createConfig(argv.target_config, argv, 'target');
@@ -14,7 +12,7 @@ module.exports = async function(stream, argv) {
   const Body = stream
     .pipe(etl.map(function(d) {
       if (d instanceof Object && !(d instanceof Buffer)) {
-        return JSON.stringify(d)+'\n';
+        return JSON.stringify(d) + '\n';
       } else {
         return d;
       }

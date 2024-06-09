@@ -1,7 +1,10 @@
-const AWS = require('aws-sdk');
+const { AthenaClient, StartQueryExecutionCommand, GetQueryExecutionCommand } = require('@aws-sdk/client-athena');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const etl = require('etl');
 const Bluebird = require('bluebird');
 const athenaParser = require('./lib/athenaParser');
+// eslint-disable-next-line no-redeclare
+const crypto = require('crypto');
 
 module.exports = argv => {
   if (argv.version && argv.version.includes('rand')) argv.version = String(Math.random());
@@ -11,8 +14,8 @@ module.exports = argv => {
   const QueryString = argv.source_query || `select * from ${table}`;
   const OutputLocation = argv.outputLocation || argv.source_config.outputLocation;
 
-  const athena = new AWS.Athena(argv.source_config || argv);
-  const s3 = new AWS.S3(argv.source_config || argv);
+  const athenaClient = new AthenaClient(argv.source_config || argv);
+  const s3Client = new S3Client(argv.source_config || argv);
 
   return () => {
     const out = etl.map(null, { keepAlive: true });
@@ -23,7 +26,7 @@ module.exports = argv => {
 
         const version = argv.version && argv.version.includes('rand') ? Math.random() : argv.version;
         //@ts-ignore
-        const ClientRequestToken = crypto.createHash('md5').update(QueryString+version).digest('hex');
+        const ClientRequestToken = crypto.createHash('md5').update(QueryString + version).digest('hex');
 
         if (argv.verbose) console.log(`Executing query ${JSON.stringify(QueryString.slice(0, 70))}`);
 
@@ -35,11 +38,11 @@ module.exports = argv => {
           WorkGroup: 'primary'
         };
 
-        const res = await athena.startQueryExecution(params).promise();
+        const res = await athenaClient.send(new StartQueryExecutionCommand(params));
         const QueryExecutionId = res.QueryExecutionId;
 
         const fetch = async() => {
-          const getExecution = await athena.getQueryExecution({ QueryExecutionId }).promise();
+          const getExecution = await athenaClient.send(new GetQueryExecutionCommand({ QueryExecutionId }));
           const execution = getExecution.QueryExecution;
           const state = execution.Status.State;
           if (/QUEUED|RUNNING/.test(state))
@@ -48,12 +51,12 @@ module.exports = argv => {
             throw execution.Status.StateChangeReason;
           else if (state == 'SUCCEEDED') {
             const [, Bucket, Key] = /s3:\/\/([^/]+)\/(.*)/.exec(execution.ResultConfiguration.OutputLocation);
-            const stream = s3.getObject({ Bucket, Key })
-              .createReadStream()
+            const res = await s3Client.send(new GetObjectCommand({ Bucket, Key }));
+            if (!res.Body) throw 'No body in response';
+            const stream = res.Body
+              //@ts-ignore
               .pipe(etl.csv())
-              // TODO nested fields need to be parsed into JSON
               .pipe(etl.map(d => {
-
                 Object.keys(d).forEach(key => {
                   // Try decoding structured output
                   if (d[key][0] == '[' || d[key][0] == '{') {

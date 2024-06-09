@@ -2,7 +2,7 @@ const tap = require('tap');
 const { cli } = require('./util');
 const { path, requireAll } = require('./util');
 const { readFileSync } = require('fs');
-const tmpDir = require('os').tmpdir()+'/';
+const tmpDir = require('os').tmpdir() + '/';
 
 
 requireAll(path('../targets'));
@@ -20,7 +20,7 @@ tap.test('outputs', async t => {
   t.test('json with json_collect', async t => {
     const cmd = `etl ${__dirname}/support/test.csv ${tmpDir}test_collect.json --json_collect`;
     await cli(cmd);
-    const data = require(tmpDir+'test_collect.json');
+    const data = require(tmpDir + 'test_collect.json');
     t.same(data, require('./support/test_collect.json'));
 
   });

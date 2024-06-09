@@ -1,21 +1,21 @@
-const AWS = require('aws-sdk');
 const etl = require('etl');
+const { createConfig } = require('../util');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { Readable } = require('stream');
 
-module.exports = argv => {
-  argv = Object.assign({}, argv);
-  argv.accessKeyId = argv.source_accessKeyId;
-  argv.secretAccessKey = argv.source_secretAccessKey;
+module.exports = async argv => {
+  const config = createConfig(argv.source_config, argv, 'source');
+  const client = new S3Client(config);
+  const Bucket = argv.source_params[0] || config.bucket;
+  const Key = config.source_key || argv.source_params.slice(1).join('/');
 
-  argv.source_bucket = argv.source_bucket || argv.source_collection || argv.Bucket;
-  argv.source_key = argv.source_key || argv.source_indextype || argv.Key;
+  const cmd = new GetObjectCommand({ Bucket, Key });
+  const item = await client.send(cmd);
 
-  const s3 = new AWS.S3(argv.source_config || argv);
-
-  return () => s3.getObject({
-    Bucket : argv.source_bucket,
-    Key: argv.source_key
-  })
-    .createReadStream()
+  if (!(item.Body instanceof Readable)) {
+    throw 'The response body is not a stream';
+  }
+  return item.Body
     .pipe(etl.chain(inbound => {
       if (argv.source_format === 'raw') {
         return inbound;

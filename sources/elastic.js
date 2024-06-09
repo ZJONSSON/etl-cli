@@ -1,6 +1,4 @@
 const etl = require('etl');
-const httpAwsEs = require('http-aws-es');
-const AWS = require('aws-sdk');
 
 module.exports = argv => {
   if (! (typeof argv.source_config === 'object' || argv.source_host))
@@ -10,16 +8,6 @@ module.exports = argv => {
     throw 'source_index missing';
 
   const config = Object.assign({}, argv.source_host ? { host: argv.source_host } : argv.source_config );
-
-  const awsConfig = config.awsConfig || config.amazonES;
-  if (awsConfig) {
-    config.connectionClass = httpAwsEs;
-    config.awsConfig = new AWS.Config({
-      accessKeyId: awsConfig.accessKeyId || awsConfig.accessKey,
-      secretAccessKey: awsConfig.secretAccessKey || awsConfig.secretKey,
-      region: awsConfig.region
-    });
-  }
 
   const elastic = require('@elastic/elasticsearch');
   const client = new elastic.Client(config);

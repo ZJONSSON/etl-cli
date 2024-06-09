@@ -5,7 +5,7 @@ module.exports = argv => {
   const mysql = require('mysql');
   ['source_database', 'source_table'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
-  argv.source_table = argv.source_database+'.'+argv.source_table;
+  argv.source_table = argv.source_database + '.' + argv.source_table;
   const config = createConfig(argv.source_config, argv, 'target', ['host', 'connectionLimit', 'user', 'password']);
   const pool = mysql.createPool(config);
   const p = etl.mysql.execute(pool);
@@ -50,7 +50,7 @@ module.exports = argv => {
     elastic: {
       mapping: () => sqlToElasticSchema(schema_query)
     },
-    recordCount : () => p.query(mysql.format('SELECT COUNT(*) AS recordCount FROM ?? '+(argv.where ? ' where '+argv.where : ''), [argv.source_table])).then(d => d[0].recordCount),
+    recordCount : () => p.query(mysql.format('SELECT COUNT(*) AS recordCount FROM ?? ' + (argv.where ? ' where ' + argv.where : ''), [argv.source_table])).then(d => d[0].recordCount),
     stream : () => etl.toStream(function() {
       return p.query(key_query)
         .then( keys => {

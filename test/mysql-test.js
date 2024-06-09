@@ -2,7 +2,7 @@ const tap = require('tap');
 const { cli } = require('./util');
 const etl = require('etl');
 const mysql = require('mysql');
-const waitPort= require('wait-port');
+const waitPort = require('wait-port');
 
 tap.before(async function() {
   await waitPort({ host: '127.0.0.1', port: 3306, interval: 10000 });

@@ -1,7 +1,5 @@
 const etl = require('etl');
-const httpAwsEs = require('http-aws-es');
 const Bluebird = require('bluebird');
-const AWS = require('aws-sdk');
 
 module.exports = (stream, argv, schema) => {
   schema = schema && schema.elastic || {};
@@ -18,17 +16,6 @@ module.exports = (stream, argv, schema) => {
 
   // Collect 100 records by default for bulk indexing
   const out = stream.pipe(etl.collect(argv.collect || 100));
-
-  // If amazonES parameters are defined, we use the aws connection class
-  const awsConfig = config.awsConfig || config.amazonES;
-  if (awsConfig) {
-    config.connectionClass = httpAwsEs;
-    config.awsConfig = new AWS.Config({
-      accessKeyId: awsConfig.accessKeyId || awsConfig.accessKey,
-      secretAccessKey: awsConfig.secretAccessKey || awsConfig.secretKey,
-      region: awsConfig.region
-    });
-  }
 
   const mapping = Bluebird.resolve(schema.mapping && typeof schema.mapping === 'function' ? schema.mapping() : schema.mapping)
     .then(mapping => mapping && ({ [target_indextype]: mapping || {} }));

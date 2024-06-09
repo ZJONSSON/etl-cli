@@ -24,7 +24,7 @@ module.exports = async function(source, argv) {
   const conf = nconf.get(argv.source_type || source);
 
   for (const key in conf)
-    argv['source_'+key] = argv['source_'+key] || conf[key];
+    argv['source_' + key] = argv['source_' + key] || conf[key];
 
   argv.source_config = conf || {
     host: argv.source_host || argv.host || 'localhost',

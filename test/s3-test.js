@@ -4,8 +4,15 @@ const { S3Client, CreateBucketCommand } = require("@aws-sdk/client-s3");
 
 const Bucket = `testbucket${String(Math.random()).replace('.', '')}`;
 
+process.env.AWS_ACCESS_KEY_ID = 'xxxxxxxxxxxx';
+process.env.AWS_SECRET_ACCESS_KEY = 'xxxxxxxxxxxx';
+process.env.AWS_REGION = 'us-east-1';
 
-const client = new S3Client({ endpoint: 'http://localhost:9090', forcePathStyle: true });
+const client = new S3Client({
+  endpoint: 'http://localhost:9090',
+  forcePathStyle: true,
+});
+
 tap.before( () => client.send(new CreateBucketCommand({ Bucket })));
 
 

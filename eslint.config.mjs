@@ -6,6 +6,7 @@ export default [
   {
     rules:{
       "space-before-blocks": 2,
+      "space-infix-ops": 2,
       "object-curly-spacing": ["error", "always"],
       "semi": 2,
       "no-multiple-empty-lines": 2,

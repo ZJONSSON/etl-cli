@@ -17,11 +17,11 @@ module.exports.createConfig = function(config, argv, prefix, keys) {
     });
   } else {
     Object.keys(argv).forEach(key => {
-      if (key.startsWith(prefix+'_')) {
+      if (key.startsWith(prefix + '_')) {
         let value = argv[key];
         if (value === 'true') value = true;
         if (value === 'false') value = false;
-        config[key.replace(prefix+'_', '')] = value;
+        config[key.replace(prefix + '_', '')] = value;
       }
     });
   }

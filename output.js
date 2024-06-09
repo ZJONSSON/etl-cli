@@ -24,7 +24,7 @@ module.exports = async function(obj, argv) {
   if (dest && dest.match('/')) {
     dest = dest.split('/');
 
-    const trialPath = dest.slice(0, dest.length-1).join('/');
+    const trialPath = dest.slice(0, dest.length - 1).join('/');
     // If dest is not a path, we break it up into target_index and target_collection
     if (!fs.existsSync(trialPath)) {
       argv.target_index = argv.target_index || dest[1];
@@ -42,7 +42,7 @@ module.exports = async function(obj, argv) {
   // Load custom config for the target_type or output
   const conf = nconf.get(dest) || {};
   for (const key in conf)
-    argv['target_'+key] = argv['target_'+key] || conf[key];
+    argv['target_' + key] = argv['target_' + key] || conf[key];
   argv.target_config = conf;
 
   // Removal should be a regex
@@ -68,15 +68,15 @@ module.exports = async function(obj, argv) {
       .then(() => console.log('total', total));
 
 
-  let Σ_out = 0, Σ_in = 0, last =0, counter, total;
+  let Σ_out = 0, Σ_in = 0, last = 0, counter, total;
   if (!argv.silent) {
     counter = setInterval(() => {
       const Δ = Σ_in - last;
       last = Σ_in;
       total = argv.recordCount || total;
-      const heap = Math.round(process.memoryUsage().heapUsed/1000000);
+      const heap = Math.round(process.memoryUsage().heapUsed / 1000000);
       const skipped = argv.Σ_skipped ? ` (${argv.Σ_skipped} skipped) ` : '';
-      console.log(`Σ${Σ_in} Δ${Δ} ${total && (Math.floor(Σ_in/total*10000)/100)+'%' ||''} (output: Σ${Σ_out}) ${skipped}- Heap: ${heap} Mb`);
+      console.log(`Σ${Σ_in} Δ${Δ} ${total && (Math.floor(Σ_in / total * 10000) / 100) + '%' || ''} (output: Σ${Σ_out}) ${skipped}- Heap: ${heap} Mb`);
     }, argv.report_interval || 1000);
   }
 
@@ -186,7 +186,7 @@ module.exports = async function(obj, argv) {
           delete d[key];
       });
 
-    Σ_out+=1;
+    Σ_out += 1;
     total = d.__total || total;
 
     if (argv.filter)
@@ -205,10 +205,10 @@ module.exports = async function(obj, argv) {
 
   let output;
   try {
-    output = require(path.resolve(__dirname, 'targets', type+'.js'));
+    output = require(path.resolve(__dirname, 'targets', type + '.js'));
   } catch(e) {
     if (e?.code === 'MODULE_NOT_FOUND')
-      throw 'target_type '+type+' not available';
+      throw 'target_type ' + type + ' not available';
     else
       throw e;
   }

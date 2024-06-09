@@ -24,9 +24,9 @@ module.exports = function(stream, argv) {
     Object.keys(headers).forEach(key => {
       const header = headers[key];
       if (typeof header === 'object')
-        flattenData(header, d[key] || {}, obj, prefix+key+separator);
+        flattenData(header, d[key] || {}, obj, prefix + key + separator);
       else
-        obj[prefix+key] = d[key];
+        obj[prefix + key] = d[key];
     });
     return obj;
   }
