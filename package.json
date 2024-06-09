@@ -32,7 +32,7 @@
     "mongodb": "^3.5.6",
     "mssql": "^5.1.0",
     "mysql": "^2.14.1",
-    "nconf": "~0.8.4",
+    "nconf": "~0.12.1",
     "node-fetch": "^2.6.1",
     "parquetjs-lite": "0.8.5",
     "pegjs": "^0.10.0",
