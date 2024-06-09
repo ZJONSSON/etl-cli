@@ -1,46 +1,47 @@
 const etl = require('etl');
-const AWS = require('aws-sdk');
+const path = require('path');
+const { Upload } = require("@aws-sdk/lib-storage");
+const { paginateListObjectsV2,
+  S3Client
+} = require('@aws-sdk/client-s3');
+const { createConfig } = require('../util');
 
-module.exports = function(stream, argv) {
-  argv = Object.assign({}, argv);
-  if (argv.target_accessKeyId) argv.accessKeyId = argv.target_accessKeyId;
-  if (argv.target_secretAccessKey) argv.secretAccessKey = argv.target_secretAccessKey;
-  const s3 = new AWS.S3(argv.target_config || argv);
 
-  const Bucket = argv.target_bucket || argv.target_collection;
-  const Prefix = argv.target_key || argv.target_indextype;
+module.exports = async function(stream, argv) {
+  const config = createConfig(argv.target_config, argv, 'target');
+  const client = new S3Client(config);
+  const Bucket = argv.target_params[0] || config.bucket;
+  const Prefix = argv.target_params.slice(1).join('/') || config.prefix || '';
+  //const reFilter = RegExp(config.filter);
   if (!Bucket) throw 'S3 Bucket missing';
-  if (!Prefix) throw 'S3 Prefix missing';
+
 
   const files = new Set([]);
 
-  return etl.toStream(async () => {
-    let truncated = true;
-    const query = { Bucket, Prefix };
+  const query = { Bucket, Prefix };
 
-    while (!argv.no_skip && truncated) {
-      const res = await s3.listObjects(query).promise();
-      res.Contents.forEach(d => files.add(d.Key));
-      truncated = res.IsTruncated;
-      if (truncated) query.Marker = res.Contents.slice(-1)[0].Key;
+  if (!config.overwrite) {
+    for await (const res of paginateListObjectsV2({ client }, query)) {
+      res?.Contents?.forEach(d => {
+        files.add(d.Key);
+      });
     }
+  }
 
-    return stream;
-  })
-    .pipe(etl.map(argv.concurrency || 1, async d => {
-      const Key = `${Prefix}/${d.filename}`;
-      if (files.has(Key)) return { message: 'skipping', Key };
-
-      const Body = typeof d.body === 'function' ? await d.body() : d.body;
-      if (!Body) return { Key, message: 'No body' };
-      await s3.upload({ Bucket, Key, Body }).promise();
-      return { Key, message: 'OK' };
-
-    }, {
-      catch: function(e, d) {
-        console.error(e);
-        this.write(d);
-      }
-    }));
-
+  return stream.pipe(etl.map(argv.concurrency || 1, async d => {
+    const Key = path.join(Prefix, d.filename);
+    if (files.has(Key)) {
+      argv.Σ_skipped += 1;
+      return { message: 'skipping', Key };
+    }
+    const Body = typeof d.body === 'function' ? await d.body() : d.body;
+    const upload = new Upload({ client, params: { Bucket, Key, Body } });
+    await upload.done();
+    return { Key, message: 'OK' };
+  }, {
+    catch: function(e, d) {
+      console.error(e);
+      this.write(d);
+    }
+  }));
 };

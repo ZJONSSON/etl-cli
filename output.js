@@ -9,6 +9,7 @@ const { safeRequire } = require('./util');
 module.exports = async function(obj, argv) {
   let validate;
   argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
+  argv.Σ_skipped = 0;
   let dest = argv.target || argv?._?.[0];
   if (!argv.target_dir && dest) {
     argv.target_dir = dest.split('/').slice(1).join('/');
@@ -74,7 +75,8 @@ module.exports = async function(obj, argv) {
       last = Σ_in;
       total = argv.recordCount || total;
       const heap = Math.round(process.memoryUsage().heapUsed/1000000);
-      console.log(`Σ${Σ_in} Δ${Δ} ${total && (Math.floor(Σ_in/total*10000)/100)+'%' ||''} (output: Σ${Σ_out}) - Heap: ${heap} Mb`);
+      const skipped = argv.Σ_skipped ? ` (${argv.Σ_skipped} skipped) ` : '';
+      console.log(`Σ${Σ_in} Δ${Δ} ${total && (Math.floor(Σ_in/total*10000)/100)+'%' ||''} (output: Σ${Σ_out}) ${skipped}- Heap: ${heap} Mb`);
     }, argv.report_interval || 1000);
   }
 
@@ -213,23 +215,26 @@ module.exports = async function(obj, argv) {
 
   if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
 
-  return (await output(stream, argv, obj))
-    .pipe(etl.map(d => { if (!argv.silent) console.log(JSON.stringify(d, null, 2));}))
-    .promise()
-    .then(() => {
-      clearInterval(counter);
-      if (!argv.silent)
-        console.log(`Completed ${Σ_in} records in and ${Σ_out} record out`);
-    }, e => {
-      if (e.errors) console.log('errors', JSON.stringify(e.errors, null, 2));
-      else console.error('error', e.errors || e);
-    })
-    .then(() => {
-      if (argv.exit) {
-        setImmediate(() => process.exit());
-      }
-      const res = { Σ_in, Σ_out };
-      if (argv.test) res.data = argv.test;
-      return res;
-    });
+  const o = await output(stream, argv, obj);
+  if (o?.pipe) {
+    await o.pipe(etl.map(d => {
+      if (!argv.silent) console.log(JSON.stringify(d, null, 2));
+    })).promise();
+  }
+
+  clearInterval(counter);
+
+  if (!argv.silent) {
+    let msg = `Completed ${Σ_in} records in and ${Σ_out} record out.`;
+    if (argv.Σ_skipped) msg += ` (${argv.Σ_skipped} skipped)`;
+    console.log(msg);
+  }
+
+  if (argv.exit) {
+    setImmediate(() => process.exit());
+  }
+  const res = { Σ_in, Σ_out };
+  if (argv.test) res.data = argv.test;
+  if (argv.Σ_skipped) res.Σ_skipped = argv.Σ_skipped;
+  return res;
 };

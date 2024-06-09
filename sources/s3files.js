@@ -1,43 +1,36 @@
 const etl = require('etl');
-const AWS = require('aws-sdk');
-const s3Source = require('./s3');
+const { paginateListObjectsV2,
+  S3Client,
+  GetObjectCommand
+} = require('@aws-sdk/client-s3');
+const { createConfig } = require('../util');
 
 module.exports = function(argv) {
-  argv = Object.assign({}, argv);
-
-  if (argv.target_accessKeyId) argv.accessKeyId = argv.target_accessKeyId;
-  if (argv.target_secretAccessKey) argv.secretAccessKey = argv.target_secretAccessKey;
-
-  const s3 = new AWS.S3(argv.source_config || argv);
-  const Bucket = argv.source_bucket || argv.source_collection;
-  const Prefix = argv.source_key || argv.source_indextype;
+  const config = createConfig(argv.source_config, argv, 'source');
+  const client = new S3Client(config);
+  const Bucket = argv.source_params[0] || config.bucket;
+  const Prefix = argv.source_params.slice(1).join('/') || config.prefix || '';
+  const reFilter = RegExp(config.filter);
   if (!Bucket) throw 'S3 Bucket missing';
-  if (!Prefix) throw 'S3 Prefix missing';
-
-  const reFilter = RegExp(argv['filter-files']);
 
   return {
     stream: () => etl.toStream(async function() {
-      let truncated = true;
       const query = { Bucket, Prefix };
-
-      while (!argv.no_skip && truncated) {
-        const res = await s3.listObjects(query).promise();
-
-        res.Contents.forEach(d => {
-          const params = { Bucket, Key: d.Key, source_config: argv.source_config, source_format: 'raw' };
+      for await (const res of paginateListObjectsV2({ client }, query)) {
+        res?.Contents?.forEach(d => {
           if (reFilter.exec(d.Key)) this.push({
             bucket: Bucket,
-            filename: d.Key,
+            filename: d.Key.replace(Prefix, '').replace(/^([/]+)/, ''),
             etag: d.ETag.replace(/"/g, ''),
             size: d.Size,
-            getClient: () => s3,
-            body: () => s3Source(params)()
+            getClient: () => client,
+            body: async () => {
+              const cmd = new GetObjectCommand({ Bucket, Key: d.Key });
+              const item = await client.send(cmd);
+              return item.Body;
+            }
           });
         });
-
-        truncated = res.IsTruncated;
-        if (truncated) query.Marker = res.Contents.slice(-1)[0].Key;
       }
     })
   };

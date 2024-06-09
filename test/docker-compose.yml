@@ -31,6 +31,17 @@ services:
     image: elasticsearch:8.12.0
     environment: ['http.host=0.0.0.0', 'transport.host=127.0.0.1','xpack.security.enabled=false', 'xpack.security.enrollment.enabled=false']
     ports: ['9200:9200']
+  
+  s3mock:
+    image: adobe/s3mock:latest
+    environment:
+      - debug=true
+      - root=containers3root
+    ports:
+      - 9090:9090
+      - 9191:9191
+    volumes:
+      - ./locals3root:/containers3root
 
 volumes:
   mysql-data:

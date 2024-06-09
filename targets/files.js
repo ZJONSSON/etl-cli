@@ -8,7 +8,7 @@ const utimesAsync = Bluebird.promisify(fs.utimes);
 const fstream = require('fstream');
 const convert = require('./lib/convert');
 
-module.exports = function(stream, argv) {
+module.exports = async function(stream, argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
   const target_dir = argv.target_dir;
   if (!target_dir) throw 'Not target_dir';
