@@ -24,7 +24,7 @@
     "clues": "~3.6.0",
     "csv-write-stream": "^2.0.0",
     "elasticsearch": "~15.5.0",
-    "etl": "^0.6.10",
+    "etl": "^0.7.0",
     "fetch-cookie": "^0.11.0",
     "http-aws-es": "^6.0.0",
     "https-proxy-agent": "^5.0.0",
