@@ -13,7 +13,19 @@ const client = new S3Client({
   forcePathStyle: true,
 });
 
-tap.before( () => client.send(new CreateBucketCommand({ Bucket })));
+tap.before(async() => {
+  let bucketCreated;
+  while (!bucketCreated) {
+    try {
+      bucketCreated = await client.send(new CreateBucketCommand({ Bucket }));
+    } catch(e) {
+      // waitport does not work here as s3mock opens port 9090
+      // before it's actually ready to accept s3 commands
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+});
 
 
 tap.test('s3files', async t => {
