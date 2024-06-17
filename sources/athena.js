@@ -5,6 +5,7 @@ const Bluebird = require('bluebird');
 const athenaParser = require('./lib/athenaParser');
 // eslint-disable-next-line no-redeclare
 const crypto = require('crypto');
+const { createConfig } = require('../util');
 
 module.exports = argv => {
   if (argv.version && argv.version.includes('rand')) argv.version = String(Math.random());
@@ -13,9 +14,9 @@ module.exports = argv => {
   if (!table && !argv.source_query) throw '--table or --query missing';
   const QueryString = argv.source_query || `select * from ${table}`;
   const OutputLocation = argv.outputLocation || argv.source_config.outputLocation;
-
-  const athenaClient = new AthenaClient(argv.source_config || argv);
-  const s3Client = new S3Client(argv.source_config || argv);
+  const config = createConfig(argv.source_config, argv, 'source');
+  const athenaClient = new AthenaClient(config);
+  const s3Client = new S3Client(config);
 
   return () => {
     const out = etl.map(null, { keepAlive: true });
