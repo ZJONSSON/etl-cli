@@ -6,7 +6,7 @@ module.exports = argv => {
   ['source_database', 'source_table'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
 
   argv.source_table = argv.source_database + '.' + argv.source_table;
-  const config = createConfig(argv.source_config, argv, 'target', ['host', 'connectionLimit', 'user', 'password']);
+  const config = createConfig(argv.source_config, argv, 'source', ['host', 'connectionLimit', 'user', 'password']);
   const pool = mysql.createPool(config);
   const p = etl.mysql.execute(pool);
 

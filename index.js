@@ -77,7 +77,7 @@ function cli(argv) {
 
 //@ts-ignore
 if (!module.parent) {
-  cli(process.argv.slice(2).concat('--exit'));
+  cli(process.argv.slice(2).concat('--exit')).catch(e => console.error(e));
 }
 
 module.exports = main;
