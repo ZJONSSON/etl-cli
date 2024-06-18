@@ -4,6 +4,10 @@ const tap = require('tap');
 const app = express();
 const { cli } = require('./util');
 
+process.env.AWS_ACCESS_KEY_ID = 'abc123';
+process.env.AWS_SECRET_ACCESS_KEY = 'abc123';
+process.env.AWS_REGION = 'us-east-1';
+
 app.use(express.raw({ type: '*/*', limit: '10mb' }));
 app.use((req, res) => {
   const body = typeof req.body == 'object' ? req.body : JSON.parse(req.body);
@@ -36,7 +40,7 @@ app.use((req, res) => {
 const server = app.listen(3000);
 
 tap.test('athena', async t => {
-  const cmd = `etl athena/test/test test --source_endpoint="http://localhost:3000" --source_region="us-east-1" --source_forcePathStyle=true`;
+  const cmd = `etl athena/test/test test --source_endpoint="http://localhost:3000"  --source_forcePathStyle=true`;
   const res = await cli(cmd);
   console.log(JSON.stringify(res));
   t.same(res, { "Σ_in":1, "Σ_out":1, "data":[{ "a":"1", "b":"2", "c":[{ "d":3, "e":4, "f":[{ "e":5 }, { "f":6 }] }] }] });
