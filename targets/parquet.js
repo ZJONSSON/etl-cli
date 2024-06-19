@@ -1,6 +1,5 @@
 const etl = require('etl');
-const parquet = require('/home/zjonsson/git/parquetjs');
-console.log('parquet')
+const parquet = require('parquetjs-lite');
 
 module.exports = (stream, argv, schema) => {
   schema = schema && schema.parquet && new parquet.ParquetSchema(schema.parquet);
@@ -13,13 +12,13 @@ module.exports = (stream, argv, schema) => {
       try {
         await writer.appendRow(d);
       } catch(e) {
-        out.emit('error',e);
+        out.emit('error', e);
       }
     }))
-    .on('finish', async () => {
-      await writer.close();
-      out.end();
-    });
+      .on('finish', async () => {
+        await writer.close();
+        out.end();
+      });
   });
 
   return out
@@ -27,5 +26,5 @@ module.exports = (stream, argv, schema) => {
       if (typeof d === 'function') return;
       return d;
     }))
-    .pipe(etl.toFile(argv.dest)); 
+    .pipe(etl.toFile(argv.dest));
 };

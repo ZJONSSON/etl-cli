@@ -14,14 +14,14 @@ module.exports = argv => {
     stream: async () => {
       await connection;
 
-      const out = etl.map(undefined, {highWaterMark: 100000});
+      const out = etl.map(undefined, { highWaterMark: 100000 });
       const request = new sql.Request();
       request.stream = true;
       request.query(query);
-      request.on('row',d => {
+      request.on('row', d => {
         if (out.write(d) == false) request.pause();
       });
-      request.on('error', e => out.emit('error',e));
+      request.on('error', e => out.emit('error', e));
       request.on('done', () => out.end());
       out.on('drain', () => request.resume());
       return out;

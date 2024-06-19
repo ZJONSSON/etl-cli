@@ -2,16 +2,16 @@ const etl = require('etl');
 const getFile = require('./getFile');
 
 module.exports = function(argv) {
-    return () => getFile(argv.source)
+  return () => getFile(argv.source)
     .pipe(etl.csv(argv))
     .pipe(etl.map(function(d) {
-      return Object.keys(d).reduce( (p,key) => {
+      return Object.keys(d).reduce( (p, key) => {
         const keys = key.split(argv.separator || 'ᐅ');
         let obj = p;
-        keys.slice(0,keys.length-1)
+        keys.slice(0, keys.length - 1)
           .forEach(key => obj = obj[key] = obj[key] || {});
-        obj[keys[keys.length-1]] = d[key];
+        obj[keys[keys.length - 1]] = d[key];
         return p;
-      },{});
+      }, {});
     }));
 };

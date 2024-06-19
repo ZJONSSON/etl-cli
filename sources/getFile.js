@@ -7,5 +7,5 @@ module.exports = source => {
   else if (source === 'stdin')
     return process.stdin;
   else
-    return fs.createReadStream(path.resolve('./',source));
+    return fs.createReadStream(path.resolve('./', source));
 };

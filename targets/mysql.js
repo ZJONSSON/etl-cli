@@ -1,11 +1,12 @@
 const etl = require('etl');
+const { createConfig } = require('../util');
 
-module.exports = (stream,argv) => {
+module.exports = (stream, argv) => {
   const mysql = require('mysql');
-  ['target_collection', 'target_indextype'].forEach(key => { if(!argv[key]) throw `${key} missing`;});
+  const config = createConfig(argv.target_config, argv, 'target', ['host', 'connectionLimit', 'user', 'password']);
+  const pool = mysql.createPool(config);
 
-  let conf = argv.target_config;
-  let pool = mysql.createPool(conf);
-
-  return stream.pipe(etl.mysql.upsert(pool, argv.target_collection, argv.target_indextype, argv));
+  const ret = stream.pipe(etl.mysql.upsert(pool, argv.target_collection, argv.target_indextype, argv));
+  ret.promise().then(() => pool.end());
+  return ret;
 };

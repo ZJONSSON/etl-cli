@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx tap --coverage-report=lcov --coverage-report=html --allow-incomplete-coverage"
+    "test": "cd test && docker compose up -d --no-recreate --quiet-pull && npx tap --coverage-report=lcov --coverage-report=html --allow-incomplete-coverage"
   },
   "bin": {
     "etl": "index.js"
@@ -16,38 +16,47 @@
   "author": "https://github.com/ZJONSSON",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-athena": "^3.592.0",
+    "@aws-sdk/client-s3": "^3.590.0",
+    "@aws-sdk/lib-storage": "^3.591.0",
+    "@elastic/elasticsearch": "^8.11.0",
     "@google-cloud/bigquery": "^2.0.6",
-    "ajv": "^8.6.3",
-    "aws-sdk": "^2.573.0",
+    "ajv": "^8.14.0",
     "bluebird": "~3.7.2",
     "bson": "^4.0.3",
     "clues": "~3.6.0",
     "csv-write-stream": "^2.0.0",
-    "elasticsearch": "~15.5.0",
-    "etl": "^0.6.10",
+    "etl": "^0.8.0",
     "fetch-cookie": "^0.11.0",
-    "http-aws-es": "^6.0.0",
     "https-proxy-agent": "^5.0.0",
     "minimist": "~1.2.0",
-    "mongodb": "^3.5.6",
+    "mongodb": "^6.3.0",
     "mssql": "^5.1.0",
     "mysql": "^2.14.1",
     "nconf": "~0.12.1",
     "node-fetch": "^2.6.1",
     "parquetjs-lite": "0.8.5",
     "pegjs": "^0.10.0",
-    "pg": "^8.5.1",
+    "pg": "^8.11.3",
     "pg-query-stream": "^2.0.0",
     "recursive-readdir": "^2.2.2",
     "request": "^2.88.0",
     "s3-upload-stream": "~1.0.7",
+    "split-string": "^6.1.0",
     "tedious": "^6.2.0",
     "ts-node": "^10.9.2",
     "unzipper": "~0.12.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.2.0",
+    "@types/node": "^20.12.11",
+    "eslint": "^9.2.0",
+    "express": "^4.19.2",
+    "globals": "^15.3.0",
     "raxl": "^0.0.3",
     "tap": "^18.7.2",
+    "typescript": "^5.4.5",
+    "wait-port": "^1.1.0",
     "xmler": "^1.2.1"
   }
 }
