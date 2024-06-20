@@ -16,9 +16,51 @@ function removeListElement(obj) {
   return obj;
 }
 
+function convert(obj) {
+  const array = obj?.fields?.list?.fields?.element || obj?.list?.fields?.element;
+  if (array) {
+    return {
+      type: 'array',
+      items: convert(array)
+    };
+  }
+
+  if (obj.fields) {
+    return {
+      properties: Object.keys(obj.fields).reduce((acc, field) => {
+        acc[field] = convert(obj.fields[field]);
+        return acc;
+      }, {})
+    };
+  } else {
+
+    if (obj.repeatable) {
+      delete obj.repeatable;
+      return {
+        type: 'array',
+        items: convert(obj),
+      };
+    } else if (obj.type == 'UTF8') {
+      return { type: 'string' };
+    } else if (obj.type == 'DOUBLE') {
+      return { type: 'number' };
+    } else if (obj.type.startsWith('INT')) {
+      return { type: 'integer' };
+    } else if (obj.type == 'BOOLEAN') {
+      return { type: 'boolean' };
+    } else throw `unknown type ${obj}`;
+
+  }
+}
+
 module.exports = function(argv) {
   let reader, cursor;
   return {
+    schema: async() => {
+      const reader = await parquet.ParquetReader.openFile(path.resolve('./', argv.source));
+      console.log(JSON.stringify(reader.schema, null, 2));
+      return convert({ fields: reader.schema.schema });
+    },
     stream : () => new Stream.Readable({
       read : async function() {
         try {

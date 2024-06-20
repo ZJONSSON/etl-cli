@@ -72,6 +72,35 @@ async function main(argv) {
   }
 
   const _input = await input(source, argv);
+
+  if (_input && !_input.schema) {
+    let resolve;
+    const schemaPromise = new Promise(r => resolve = r);
+    _input.schema = () => schemaPromise;
+    const originalStream = _input.stream;
+    _input.stream = async () => {
+      const stream = await originalStream();
+      return etl.toStream(stream).pipe(etl.prescan(argv.prescan_size || 1000, d => {
+        const { inferSchema } = require('./schema');
+        resolve(inferSchema(d));
+      }));
+    };
+  }
+
+  if (argv.export_schema) {
+    _input.stream();
+    const schema = await _input.schema;
+    return output({ stream: schema }, argv);
+  }
+
+  if (argv.export_glue_schema) {
+    _input.stream();
+    const schema = await _input.schema();
+    const { glueSchema } = require('./schema');
+    const ddl = glueSchema(schema);
+    return output({ stream: ddl }, argv);
+  }
+
   if (_input) return output(_input, argv).catch(e => {
     console.error(e);
     process.exit();
