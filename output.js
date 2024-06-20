@@ -112,7 +112,7 @@ module.exports = async function(obj, argv) {
     return d;
   }));
 
-  if (argv.transform) {
+  if (argv.transform && argv.transform.length) {
     const transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
     try {
       const vm = require('vm');
