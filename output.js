@@ -112,6 +112,7 @@ module.exports = async function(obj, argv) {
   }));
 
   if (argv.transform && argv.transform.length) {
+    obj = {};
     const transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
     try {
       vm = require('vm');
@@ -152,6 +153,7 @@ module.exports = async function(obj, argv) {
   }
 
   if (argv.chain) {
+    obj = {};
     let chain = await safeRequire(path.resolve('.', argv.chain));
     chain = chain.chain || chain;
     stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
