@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cd test && docker compose up -d --no-recreate --quiet-pull && npx tap --coverage-report=lcov --coverage-report=html --allow-incomplete-coverage"
+    "test": "cd test && docker compose up -d --no-recreate --quiet-pull && npx tap --coverage-report=lcov --coverage-report=html --allow-incomplete-coverage --reporter=dot"
   },
   "bin": {
     "etl": "index.js"
