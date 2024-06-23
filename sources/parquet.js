@@ -14,6 +14,7 @@ function convert(obj) {
 
   if (obj.fields) {
     return {
+      type: 'object',
       properties: Object.keys(obj.fields).reduce((acc, field) => {
         acc[field] = convert(obj.fields[field]);
         return acc;
@@ -40,13 +41,30 @@ function convert(obj) {
   }
 }
 
+function removeListElement(obj) {
+  if (obj && typeof obj == 'object') {
+    if (obj.list) {
+      obj = obj.list;
+    } else if (obj.element) {
+      obj = obj.element;
+    };
+    Object.keys(obj).forEach(key => {
+      obj[key] = removeListElement(obj[key]);
+    });
+  }
+  return obj;
+}
+
 module.exports = function(argv) {
   let reader, cursor;
   return {
     schema: async() => {
       const reader = await parquet.ParquetReader.openFile(path.resolve('./', argv.source));
-      console.log(JSON.stringify(reader.schema, null, 2));
-      return convert({ fields: reader.schema.schema });
+      return {
+        type: "object",
+        '$comment': 'extracted from parquet schema',
+        ...convert({ fields: reader.schema.schema })
+      };
     },
     stream : () => new Stream.Readable({
       read : async function() {
@@ -69,7 +87,7 @@ module.exports = function(argv) {
           if (!records || !records.length) {
             this.emit('end');
           } else {
-            records.forEach(record => this.push(record));
+            records.forEach(record => this.push(removeListElement(record)));
           }
         } catch(e) {
           this.emit('error', e);
