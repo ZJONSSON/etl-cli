@@ -112,7 +112,8 @@ module.exports = async function(obj, argv) {
     return d;
   }));
 
-  if (argv.transform) {
+  if (argv.transform && argv.transform.length) {
+    obj = {};
     const transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
     try {
       const vm = require('vm');
@@ -153,6 +154,7 @@ module.exports = async function(obj, argv) {
   }
 
   if (argv.chain) {
+    obj = {};
     let chain = await safeRequire(path.resolve('.', argv.chain));
     chain = chain.chain || chain;
     stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
@@ -214,6 +216,32 @@ module.exports = async function(obj, argv) {
   }
 
   if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
+
+
+  if (obj && !obj.schema) {
+    const { inferSchema } = require('./schema');
+    let resolve;
+    const schemaPromise = new Promise(r => resolve = r);
+    obj.schema = () => schemaPromise;
+    const oldStream = stream;
+
+    stream = oldStream.pipe(etl.prescan(argv.prescan_size || 1000, d => {
+      resolve(inferSchema(d));
+      oldStream.destroy();
+    }));
+  };
+
+
+  if (argv.export_schema) {
+    const schema = await obj.schema();
+    stream = etl.toStream(schema);
+  }
+
+  if (argv.export_glue_schema) {
+    const schema = await obj.schema();
+    const { glueSchema } = require('./schema');
+    stream = glueSchema(schema);
+  }
 
   const o = await output(stream, argv, obj);
   if (o?.pipe) {

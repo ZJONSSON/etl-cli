@@ -46,7 +46,7 @@ tap.test('mysql', async t => {
   });
 
   t.test('reading data', async t => {
-    const cmd = `etl ${__dirname}/support/test.csv test --user=root --password=example`;
+    const cmd = `etl mysql/test_schema/test test --user=root --password=example`;
     const res = await cli(cmd);
     const data = res.data.map(d => {
       delete d._id;

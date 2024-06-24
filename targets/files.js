@@ -7,6 +7,7 @@ const renameAsync = Bluebird.promisify(fs.rename);
 const utimesAsync = Bluebird.promisify(fs.utimes);
 const fstream = require('fstream');
 const convert = require('./lib/convert');
+const path = require('path');
 
 module.exports = async function(stream, argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
@@ -20,7 +21,7 @@ module.exports = async function(stream, argv) {
     return stream;
   })
     .pipe(etl.map(argv.concurrency || 1, async d => {
-      const Key = `${target_dir}/${d.filename}`;
+      const Key = path.join(target_dir, d.filename);
       if (files.has(Key)) return { message: 'skipping', Key };
       if (filter_files && !filter_files.test(Key)) return { message: 'ignoring', Key };
 

@@ -2,7 +2,7 @@ const etl = require('etl');
 const csvWriter = require('csv-write-stream');
 
 module.exports = function(stream, argv) {
-  const separator = argv.target_separator || argv.separator || 'ᐅ';
+  const separator = argv.target_separator || argv.separator || '>';
   let headers = {};
 
   function getHeaders(d, p) {
