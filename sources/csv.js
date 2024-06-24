@@ -9,7 +9,7 @@ module.exports = function(argv) {
         const value = d[path];
         if (value == '') return p;
 
-        const keys = path.split(argv.separator || 'ᐅ');
+        const keys = path.split(argv.separator || '>');
         let obj = p;
         keys
           .forEach( (key, pos) => {
