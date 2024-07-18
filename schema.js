@@ -52,11 +52,13 @@ function traverseGlue(d) {
     return `struct<${inner}>`;
   }
 
-  if (d.type == 'boolean') return `boolean`;
-  if (d.type == 'string') return `string`;
-  if (d.type == 'number') return `double`;
-  if (d.type == 'integer') return `bigint`;
-  if (d.type == 'integer') return `bigint`;
+  if (d.type == 'boolean') return 'boolean';
+  if (d.type == 'string') return 'string';
+  if (d.type == 'number') return 'double';
+  if (d.type == 'integer') {
+    if (d.comment == 'INT32' || d.comment == 'UINT32') return 'int';
+    return 'bigint';
+  }
 }
 
 module.exports.glueSchema = schema => {

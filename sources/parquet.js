@@ -42,13 +42,13 @@ function convert(obj) {
         items: convert(obj),
       };
     } else if (obj.type == 'UTF8') {
-      return { type: 'string' };
-    } else if (obj.type == 'DOUBLE') {
-      return { type: 'number' };
-    } else if (obj.type.startsWith('INT')) {
-      return { type: 'integer' };
+      return { type: 'string', comment: obj.type };
+    } else if (obj.type == 'DOUBLE' || obj.type == 'FLOAT') {
+      return { type: 'number', comment: obj.type };
+    } else if (obj.type.includes('INT')) {
+      return { type: 'integer', comment: obj.type };
     } else if (obj.type == 'BOOLEAN') {
-      return { type: 'boolean' };
+      return { type: 'boolean', comment: obj.type };
     } else throw `unknown type ${obj}`;
 
   }
