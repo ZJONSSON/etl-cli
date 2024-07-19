@@ -1,11 +1,10 @@
 const etl = require('etl');
-const fs = require('fs');
+const fs = require('fs-extra');
 const Bluebird = require('bluebird');
 const recursive = require('recursive-readdir');
 const recursiveAsync = Bluebird.promisify(recursive);
 const renameAsync = Bluebird.promisify(fs.rename);
 const utimesAsync = Bluebird.promisify(fs.utimes);
-const fstream = require('fstream');
 const convert = require('./lib/convert');
 const path = require('path');
 const os = require('os');
@@ -33,12 +32,12 @@ module.exports = async function(stream, argv) {
       if (typeof Body == 'function') Body = Body();
       if (!Body) return { Key, message: 'No body' };
       Body = convert(Body, d.filename, argv);
-
+      await fs.ensureDir(path.dirname(Key));
       const tmpKey = `${Key}.download`;
       await new Promise( (resolve, reject) => {
         Body
           .on('error', reject)
-          .pipe(fstream.Writer(tmpKey))
+          .pipe(fs.createWriteStream(tmpKey))
           .on('close', async () => {
             await renameAsync(tmpKey, Key);
             if (d.timestamp) {
