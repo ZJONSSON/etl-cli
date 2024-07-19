@@ -1,6 +1,6 @@
 {
   "name": "etl-cli",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "csv-write-stream": "^2.0.0",
     "etl": "^0.8.0",
     "fetch-cookie": "^0.11.0",
+    "fs-extra": "^11.2.0",
     "https-proxy-agent": "^5.0.0",
     "minimist": "~1.2.0",
     "mongodb": "^6.3.0",
@@ -53,10 +54,12 @@
     "eslint": "^9.2.0",
     "express": "^4.19.2",
     "globals": "^15.3.0",
-    "raxl": "^0.0.3",
     "tap": "^18.7.2",
     "typescript": "^5.4.5",
     "wait-port": "^1.1.0",
     "xmler": "^1.2.1"
+  },
+  "optionalDependencies": {
+    "raxl": "^0.0.3"
   }
 }
