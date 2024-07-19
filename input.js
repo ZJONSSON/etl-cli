@@ -7,6 +7,7 @@ const fs = require('fs');
 const { safeRequire } = require('./util');
 
 module.exports = async function(source, argv) {
+  const originalSource = source;
 
   // If source
   if (source && !source.match('http') && !fs.existsSync(source)) {
@@ -81,7 +82,7 @@ module.exports = async function(source, argv) {
   if (match || fs.existsSync(sourcePath)) {
     obj = (await safeRequire(sourcePath))(argv);
   } else {
-    obj = await safeRequire(path.resolve('.', source));
+    obj = await safeRequire(path.resolve('.', originalSource));
   }
 
   if (!obj.stream)
