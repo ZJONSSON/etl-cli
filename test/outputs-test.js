@@ -37,7 +37,7 @@ tap.test('outputs', async t => {
 
   t.test('files', async t => {
     let data;
-    const cmd = `etl support/generateFiles files --target_dir ${tmpDir}`;
+    const cmd = `etl test/support/generateFiles files --target_dir ${tmpDir}`;
     await cli(cmd);
     data = readFileSync(join(tmpDir, '/test1.json'), 'utf8');
     t.same(data, 'This is file test1.json');
