@@ -41,7 +41,8 @@ async function main(argv) {
     if (opt.proxy && !argv.proxy) throw '--proxy missing';
     opt.headers = opt.headers || {};
     opt.headers['user-agent'] = opt.headers['user-agent'] || argv.userAgent;
-    const agent = HttpsProxyAgent(argv.getProxy());
+    const proxy = argv.getProxy();
+    const agent = proxy ? HttpsProxyAgent(proxy) : undefined;
     if (argv.proxy) opt = Object.assign({ agent }, opt);
     const fetchFn = opt.jar ? fetchCookie(fetch, opt.jar, false) : fetch;
     return fetchFn(url, opt);
