@@ -5,12 +5,25 @@ module.exports = function(argv) {
   return () => getFile(argv.source)
     .pipe(etl.csv(argv))
     .pipe(etl.map(function(d) {
-      return Object.keys(d).reduce( (p, key) => {
-        const keys = key.split(argv.separator || 'ᐅ');
+      return Object.keys(d).reduce( (p, path) => {
+        const value = d[path];
+        if (value == '') return p;
+
+        const keys = path.split(argv.source_separator || argv.separator || '>');
         let obj = p;
-        keys.slice(0, keys.length - 1)
-          .forEach(key => obj = obj[key] = obj[key] || {});
-        obj[keys[keys.length - 1]] = d[key];
+        keys
+          .forEach( (key, pos) => {
+            if (pos == keys.length - 1) {
+              obj[key] = value;
+            } else {
+              if (obj[key] === undefined) {
+                // if the key is 0 then we are probably dealing with an array
+                obj[key] = (+keys[pos + 1] == 0) ? [] : {};
+              }
+              obj = obj[key];
+            }
+          });
+
         return p;
       }, {});
     }));
