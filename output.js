@@ -7,6 +7,7 @@ const fs = require('fs');
 const { safeRequire } = require('./util');
 
 module.exports = async function(obj, argv) {
+  let schema = await (typeof obj.schema === 'function' ? obj?.schema() : obj.schema);
   let validate;
   argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
   argv.Σ_skipped = 0;
@@ -113,6 +114,7 @@ module.exports = async function(obj, argv) {
   }));
 
   if (argv.transform) {
+    schema = undefined;
     const transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
     try {
       const vm = require('vm');
@@ -153,13 +155,16 @@ module.exports = async function(obj, argv) {
   }
 
   if (argv.chain) {
+    schema = undefined;
     let chain = await safeRequire(path.resolve('.', argv.chain));
     chain = chain.chain || chain;
     stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
   }
 
-  if (obj[type] && typeof obj[type].transform === 'function')
+  if (obj[type] && typeof obj[type].transform === 'function') {
+    schema = undefined;
     stream = stream.pipe(etl.map(obj[type].transform));
+  }
 
   stream = stream.pipe(etl.map(function(d) {
     if (argv.setid)
@@ -213,7 +218,37 @@ module.exports = async function(obj, argv) {
       throw e;
   }
 
-  if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
+  if (argv.collect) {
+    stream = stream.pipe(etl.collect(argv.collect));
+    if (schema) {
+      schema.type = 'array';
+      schema.items = {
+        type: 'object',
+        properties: schema.properties
+      };
+      delete schema.properties;
+    }
+  }
+
+  if (!schema && (output.schema || argv.export_schema || argv.export_glue_schema)) {
+    const { inferSchema } = require('./schema');
+    schema = await new Promise(resolve => {
+      stream = stream.pipe(etl.prescan(argv.prescan_size || 1000, d => {
+        resolve(inferSchema(d));
+      }));
+    });
+  };
+
+  if (argv.export_schema) {
+    stream = etl.toStream(schema);
+  }
+
+  if (argv.export_glue_schema) {
+    const { glueSchema } = require('./schema');
+    stream = glueSchema(schema);
+  }
+
+  if (output.schema) await output.schema(schema, argv);
 
   const o = await output(stream, argv, obj);
   if (o?.pipe) {
