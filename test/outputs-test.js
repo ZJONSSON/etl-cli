@@ -17,7 +17,7 @@ tap.test('outputs', async t => {
     const cmd = `etl ${__dirname}/support/test.csv ${tmpDir}test.json`;
     await cli(cmd);
     const data = readFileSync(tmpDir + 'test.json', 'utf8');
-    t.same(data, '{"a":1,"b":2,"c":3}\n{"a":4,"b":5,"c":6}\n');
+    t.same(data, ' {"a":"1","b":"2","c":"3"}\n{"a":"4","b":"5","c":"6"}\n');
   });
 
   t.test('json with json_collect', async t => {
