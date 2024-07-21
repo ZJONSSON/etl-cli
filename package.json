@@ -61,5 +61,8 @@
   },
   "optionalDependencies": {
     "raxl": "^0.0.3"
+  },
+  "tap": {
+    "exclude": ["test/support/broken*"]
   }
 }
