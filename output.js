@@ -7,7 +7,7 @@ const fs = require('fs');
 const { safeRequire } = require('./util');
 
 module.exports = async function(obj, argv) {
-  let validate;
+  let vm;
   argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
   argv.Σ_skipped = 0;
   let dest = argv.target || argv?._?.[0];
@@ -49,16 +49,13 @@ module.exports = async function(obj, argv) {
   if (argv.remove)
     argv.remove = new RegExp(argv.remove);
 
-  // Filter should be an array
-  if (argv.filter)
-    argv.filter = argv.filter.split('=');
+  let filter;
 
-  if (argv.jsonSchema) {
-    const { Ajv } = require('ajv');
-    const ajv = new Ajv({ allErrors:true, coerceTypes: true });
-    validate = ajv.compile(require(path.resolve('.', argv.jsonSchema)));
-    console.log('Validating jsonschema and coercing variables');
+  if (argv.filter) {
+    vm = require('vm');
+    filter = vm.runInNewContext(`ret = ${argv.filter}`);
   }
+
 
   //  If not silent, we write periodic updates to console
   if (obj.recordCount)
@@ -115,7 +112,7 @@ module.exports = async function(obj, argv) {
   if (argv.transform) {
     const transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
     try {
-      const vm = require('vm');
+      vm = require('vm');
       const transform = vm.runInNewContext(`ret = ${argv.transform}`);
       stream = stream.pipe(etl.map(transform_concurrency, async function(d) {
         return transform.call(this, d, argv);
@@ -162,16 +159,14 @@ module.exports = async function(obj, argv) {
     stream = stream.pipe(etl.map(obj[type].transform));
 
   stream = stream.pipe(etl.map(function(d) {
-    if (argv.setid)
-      d._id = d[argv.setid];
-
-    if (validate) {
-      const valid = validate(d);
-      if (!valid) {
-        console.error(validate.errors, d);
-        throw 'VALIDATION_ERROR';
+    if (filter) {
+      if (!filter.call(this, d, argv)) {
+        return;
       }
     }
+
+    if (argv.setid)
+      d._id = d[argv.setid];
 
     if (argv.select)
       d = argv.select.split(',').reduce( (p, key) => {
@@ -186,18 +181,15 @@ module.exports = async function(obj, argv) {
           delete d[key];
       });
 
-    Σ_out += 1;
     total = d.__total || total;
-
-    if (argv.filter)
-      if (d[argv.filter[0]] !== argv.filter[1])
-        return;
 
     if (argv.limit && Σ_out > argv.limit)
       return;
 
-    if (!argv.limit || Σ_out <= argv.limit)
+    if (!argv.limit || Σ_out <= argv.limit) {
+      Σ_out += 1;
       return d;
+    }
   }, { highWaterMark: argv.highWaterMark || 100 }));
 
 
