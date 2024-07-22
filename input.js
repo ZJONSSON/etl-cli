@@ -88,11 +88,6 @@ module.exports = async function(source, argv) {
   if (!obj.stream)
     obj.stream = obj;
 
-  if (argv.schema) {
-    if (!argv.silent) console.log(`Using schema ${argv.schema}`);
-    Object.assign(obj, require(path.resolve('./', argv.schema)));
-  }
-
   if (!argv.silent)
     console.log(`Source: ${source + (argv.inject ? ' injected' : '')} - type: ${type}`);
 
