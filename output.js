@@ -208,6 +208,12 @@ module.exports = async function(obj, argv) {
 
   if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
 
+  if (argv.count) {
+    if (!obj.recordCount)
+      throw 'No Recordcount available';
+    stream = etl.toStream([{ recordCount: await obj.recordCount(argv) }]);
+  }
+
   const o = await output(stream, argv, obj);
   if (o?.pipe) {
     await o.pipe(etl.map(d => {

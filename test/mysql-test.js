@@ -56,4 +56,16 @@ tap.test('mysql', async t => {
     const expected = require('./support/test_collect.json');
     t.same(data, expected);
   });
+
+  t.test('recordCount', async t => {
+    const cmd = `etl mysql/test_schema/test test --user=root --password=example --count`;
+    const res = await cli(cmd);
+    t.same(res.data[0].recordCount, 2);
+  });
+
+  t.test('recordCount with query', async t => {
+    const cmd = `etl mysql test --user=root --password=example --count --source_query="select * from test_schema.test where a = 1"`;
+    const res = await cli(cmd);
+    t.same(res.data[0].recordCount, 1);
+  });
 });

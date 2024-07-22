@@ -1,7 +1,6 @@
 #! /usr/bin/env node
 
 const path = require('path');
-const Bluebird = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
 const { safeRequire } = require('./util');
@@ -91,12 +90,5 @@ module.exports = async function(source, argv) {
   if (!argv.silent)
     console.log(`Source: ${source + (argv.inject ? ' injected' : '')} - type: ${type}`);
 
-  if (argv.count) {
-    if (!obj.recordCount)
-      throw 'No Recordcount available';
-    Bluebird.try(() => obj.recordCount(argv))
-      .then(d => console.log(`Record count: ${d}`))
-      .then(() => process.exit());
-  } else
     return obj;
 };

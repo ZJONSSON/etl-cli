@@ -18,12 +18,12 @@ module.exports = argv => {
   return {
     stream: () => {
       const pquery = new QueryStream(query);
-      const stream = p.stream(pquery);
-      stream.promise().then(() => pool.end());
-      return stream;
+      return p.stream(pquery)
+        .on('end', () => pool.end());
     },
-    recordCount: () => {
-      return p.query(`select count(*) from (${query}) c`).then(d => d.rows[0].count);
+    recordCount: async () => {
+      const res = await p.query(`select count(*) as count from (${query})`);
+      return res.rows[0].count;
     }
   };
 };
