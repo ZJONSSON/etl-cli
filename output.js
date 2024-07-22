@@ -7,7 +7,7 @@ const fs = require('fs');
 const { safeRequire } = require('./util');
 
 module.exports = async function(obj, argv) {
-  let vm;
+  let vm, select, remove;
   argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
   argv.Σ_skipped = 0;
   let dest = argv.target || argv?._?.[0];
@@ -19,6 +19,12 @@ module.exports = async function(obj, argv) {
   // If a config file is specified we load it
   if (argv.config)
     nconf.load(path.resolve(argv.config));
+
+  if (argv.select)
+    select = argv.select.split(',');
+
+  if (argv.remove)
+    remove = argv.remove.split(',');
 
   // If dest has '/'
   if (dest && dest.match('/')) {
@@ -44,10 +50,6 @@ module.exports = async function(obj, argv) {
   for (const key in conf)
     argv['target_' + key] = argv['target_' + key] || conf[key];
   argv.target_config = conf;
-
-  // Removal should be a regex
-  if (argv.remove)
-    argv.remove = new RegExp(argv.remove);
 
   let filter;
 
@@ -169,16 +171,15 @@ module.exports = async function(obj, argv) {
       d._id = d[argv.setid];
 
     if (argv.select)
-      d = argv.select.split(',').reduce( (p, key) => {
+      d = select.reduce( (p, key) => {
         if (d[key] !== undefined)
           p[key] = d[key];
         return p;
       }, {});
 
     if (argv.remove)
-      Object.keys(d).forEach(key => {
-        if (argv.remove.exec(key))
-          delete d[key];
+      remove.forEach(key => {
+        delete d[key];
       });
 
     total = d.__total || total;
