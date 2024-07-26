@@ -90,5 +90,5 @@ module.exports = async function(source, argv) {
   if (!argv.silent)
     console.log(`Source: ${source + (argv.inject ? ' injected' : '')} - type: ${type}`);
 
-    return obj;
+  return obj;
 };
