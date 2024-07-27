@@ -37,7 +37,7 @@ tap.test('postgres', async t => {
   });
 
   t.test('reading data', async t => {
-    const cmd = 'etl postgres/test_schema/test test --password=example --user=postgres --upsert=true';
+    const cmd = 'etl postgres/test_schema/test test --password=example --user=postgres';
     const res = await cli(cmd);
     const data = res.data.sort((a, b) => (a.a > b.a) ? 1 : -1);
     const expected = require('./support/test_collect.json');
@@ -50,6 +50,18 @@ tap.test('postgres', async t => {
     const data = res.data.sort((a, b) => (a.a > b.a) ? 1 : -1);
     const expected = require('./support/test_collect.json');
     t.same(data, expected);
+  });
+
+  t.test('recordCount', async t => {
+    const cmd = 'etl postgres/test_schema/test test --password=example --user=postgres --count';
+    const res = await cli(cmd);
+    t.same(res.data[0].recordCount, 2);
+  });
+
+  t.test('recordCount with query', async t => {
+    const cmd = 'etl postgres test --password=example --user=postgres --source_query="select * from test_schema.test where a = 1" --count';
+    const res = await cli(cmd);
+    t.same(res.data[0].recordCount, 1);
   });
 
 });

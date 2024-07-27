@@ -10,8 +10,8 @@ tap.test('inputs', async t => {
     const cmd = `etl ${__dirname}/support/test.csv test --silent`;
     const res = await cli(cmd);
     t.same(res.data, [
-      { a: '1', b: '2', c: '3', __line: 2 },
-      { a: '4', b: '5', c : '6', __line: 3 }
+      { a: '1', b: '2', c: '3' },
+      { a: '4', b: '5', c : '6' }
     ]);
   });
 

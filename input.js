@@ -1,7 +1,6 @@
 #! /usr/bin/env node
 
 const path = require('path');
-const Bluebird = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
 const { safeRequire } = require('./util');
@@ -88,20 +87,8 @@ module.exports = async function(source, argv) {
   if (!obj.stream)
     obj.stream = obj;
 
-  if (argv.schema) {
-    if (!argv.silent) console.log(`Using schema ${argv.schema}`);
-    Object.assign(obj, require(path.resolve('./', argv.schema)));
-  }
-
   if (!argv.silent)
     console.log(`Source: ${source + (argv.inject ? ' injected' : '')} - type: ${type}`);
 
-  if (argv.count) {
-    if (!obj.recordCount)
-      throw 'No Recordcount available';
-    Bluebird.try(() => obj.recordCount(argv))
-      .then(d => console.log(`Record count: ${d}`))
-      .then(() => process.exit());
-  } else
-    return obj;
+  return obj;
 };
