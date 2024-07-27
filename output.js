@@ -43,8 +43,6 @@ module.exports = async function(obj, argv) {
     }
   }
 
-  argv.target_gzip = dest && dest.match(/\.gz$/ig);
-
   // Load custom config for the target_type or output
   const conf = nconf.get(dest) || {};
   for (const key in conf)
@@ -98,6 +96,14 @@ module.exports = async function(obj, argv) {
 
   stream = stream.pipe(etl.map(d => {
     Σ_in++;
+    if (d.filename && d.body && argv.target_gzip) {
+      d.filename += '.gz';
+      const uncompressed = d.body;
+      d.body = async function() {
+        const body = await uncompressed(true);
+        return body.pipe(require('zlib').createGzip());
+      };
+    }
     if (typeof d.body == 'function') {
       d.buffer = async function() {
         let body = await d.body(true);

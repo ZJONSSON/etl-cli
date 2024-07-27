@@ -78,4 +78,19 @@ tap.test('s3files', async t => {
     t.same( String(await data[0].buffer()), 'This is file B');
     t.same( String(await data[1].buffer()), 'This is file A');
   });
+
+  t.test('uploading files again to s3 with target_gzip', async t => {
+    const cmd = `etl files/${__dirname}/support/testfiles s3files/${Bucket}/test/gzip --target_endpoint=http://localhost:9090 --target_forcePathStyle=true --target_gzip=true`;
+    const res = await cli(cmd);
+    t.same(res, { Σ_in: 2, Σ_out: 2 }, 'overwrite files that already exist');
+  });
+
+  t.test('reading gzipped files from s3', async t => {
+    const cmd = `etl s3files/${Bucket}/test/gzip test --silent --source_endpoint=http://localhost:9090 --source_forcePathStyle=true`;
+    const res = await cli(cmd);
+    const buffer = await res.data[0].buffer();
+    const text = require('zlib').gunzipSync(buffer).toString();
+    t.same( res.data[0].filename, 'fileB.txt.gz');
+    t.same( text, 'This is file B');
+  });
 });
