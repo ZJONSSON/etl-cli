@@ -42,6 +42,33 @@ tap.test('s3files', async t => {
     t.same(res, { Σ_in: 2, Σ_out: 2, Σ_skipped: 2 }, 'skips uploading files that already exist');
   });
 
+
+  t.test('uploading files again to s3 via params', async t => {
+    const cmd = `etl files/${__dirname}/support/testfiles s3files --target_bucket=${Bucket} --target_prefix="test/subdirectory" --target_endpoint=http://localhost:9090 --target_forcePathStyle=true`;
+    const res = await cli(cmd);
+    t.same(res, { Σ_in: 2, Σ_out: 2, Σ_skipped: 2 }, 'skips uploading files that already exist');
+  });
+
+  t.test('uploading files again to s3 skipping scan', async t => {
+    const cmd = `etl files/${__dirname}/support/testfiles s3files/${Bucket}/test/subdirectory --target_endpoint=http://localhost:9090 --target_forcePathStyle=true --target_skip_scan=true`;
+    const res = await cli(cmd);
+    t.same(res.argv.target_files_scanned, false);
+    t.same(res, { Σ_in: 2, Σ_out: 2, Σ_skipped: 2 }, 'skips uploading files that already exist');
+  });
+
+  t.test('uploading files again to s3 awaiting scan', async t => {
+    const cmd = `etl files/${__dirname}/support/testfiles s3files/${Bucket}/test/subdirectory --target_endpoint=http://localhost:9090 --target_forcePathStyle=true --target_await_scan=true`;
+    const res = await cli(cmd);
+    t.same(res.argv.target_files_scanned, true);
+    t.same(res, { Σ_in: 2, Σ_out: 2, Σ_skipped: 2 }, 'skips uploading files that already exist');
+  });
+
+  t.test('uploading files again to s3 with target_overwrite', async t => {
+    const cmd = `etl files/${__dirname}/support/testfiles s3files/${Bucket}/test/subdirectory --target_endpoint=http://localhost:9090 --target_forcePathStyle=true --target_overwrite=true`;
+    const res = await cli(cmd);
+    t.same(res, { Σ_in: 2, Σ_out: 2 }, 'overwrite files that already exist');
+  });
+
   t.test('downloading files from s3', async t => {
     const cmd = `etl s3files/${Bucket}/test test --silent --source_endpoint=http://localhost:9090 --source_forcePathStyle=true`;
     const res = await cli(cmd);

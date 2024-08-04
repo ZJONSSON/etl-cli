@@ -266,8 +266,8 @@ module.exports = async function(obj, argv) {
   const res = { Σ_in, Σ_out };
   if (argv.test) {
     res.data = argv.test;
-    Object.defineProperty(res, 'argv', { value: argv });
   }
+  Object.defineProperty(res, 'argv', { value: argv });
   if (argv.Σ_skipped) res.Σ_skipped = argv.Σ_skipped;
   return res;
 };

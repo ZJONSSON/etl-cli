@@ -1,10 +1,7 @@
 const etl = require('etl');
-const fs = require('fs-extra');
-const Bluebird = require('bluebird');
+const { createWriteStream, rename, utimes, stat, ensureDir } = require('fs-extra');
 const recursive = require('recursive-readdir');
-const recursiveAsync = Bluebird.promisify(recursive);
-const renameAsync = Bluebird.promisify(fs.rename);
-const utimesAsync = Bluebird.promisify(fs.utimes);
+
 const convert = require('./lib/convert');
 const path = require('path');
 const os = require('os');
@@ -16,44 +13,65 @@ module.exports = async function(stream, argv) {
   if (target_dir.startsWith('~')) {
     target_dir = path.join(os.homedir(), target_dir.slice(1));
   }
+
   let files = new Set([]);
+  argv.target_files_scanned = false;
 
-
-  return etl.toStream(async () => {
-    if (!argv.no_skip) files = new Set(await recursiveAsync(target_dir));
-    return stream;
-  })
-    .pipe(etl.map(argv.concurrency || 1, async d => {
-      const Key = path.join(target_dir, d.filename);
-      if (files.has(Key)) return { message: 'skipping', Key };
-      if (filter_files && !filter_files.test(Key)) return { message: 'ignoring', Key };
-
-      let Body = typeof d.body === 'function' ? await d.body() : d.body;
-      if (typeof Body == 'function') Body = Body();
-      if (!Body) return { Key, message: 'No body' };
-      Body = convert(Body, d.filename, argv);
-      await fs.ensureDir(path.dirname(Key));
-      const tmpKey = `${Key}.download`;
-      await new Promise( (resolve, reject) => {
-        Body
-          .on('error', reject)
-          .pipe(fs.createWriteStream(tmpKey))
-          .on('close', async () => {
-            await renameAsync(tmpKey, Key);
-            if (d.timestamp) {
-              const timestamp = new Date(+d.timestamp);
-              if (!isNaN(+timestamp)) await utimesAsync(Key, timestamp, timestamp);
-            }
-            resolve();
-          })
-          .on('error', e => reject(e));
+  if (!argv.target_overwrite && !argv.target_skip_scan) {
+    if (argv.target_await_scan) {
+      files = new Set(await recursive(target_dir));
+      argv.target_files_scanned = true;
+    } else {
+      recursive(target_dir).then(d => {
+        files = new Set(d);
+        argv.target_files_scanned = true;
       });
-      return { Key, message: 'OK' };
+    }
+  }
 
-    }, {
-      catch: function(e) {
-        console.error(e);
+  return stream.pipe(etl.map(argv.concurrency || 1, async d => {
+    const Key = path.join(target_dir, d.filename);
+    let skip = files.has(Key);
+    if (!skip && !argv.target_files_scanned && !argv.target_overwrite) {
+      try {
+        await stat(Key);
+        skip = true;
+      } catch(e) {
+        if (e.code !== 'ENOENT') throw e;
       }
-    }));
+    }
+    if (skip) {
+      argv.Σ_skipped += 1;
+      return { message: 'skipping', Key };
+    }
 
+    if (filter_files && !filter_files.test(Key)) return { message: 'ignoring', Key };
+
+    let Body = typeof d.body === 'function' ? await d.body() : d.body;
+    if (typeof Body == 'function') Body = Body();
+    if (!Body) return { Key, message: 'No body' };
+    Body = convert(Body, d.filename, argv);
+    await ensureDir(path.dirname(Key));
+    const tmpKey = `${Key}.download`;
+    await new Promise( (resolve, reject) => {
+      Body
+        .on('error', reject)
+        .pipe(createWriteStream(tmpKey))
+        .on('close', async () => {
+          await rename(tmpKey, Key);
+          if (d.timestamp) {
+            const timestamp = new Date(+d.timestamp);
+            if (!isNaN(+timestamp)) await utimes(Key, timestamp, timestamp);
+          }
+          resolve();
+        })
+        .on('error', e => reject(e));
+    });
+    return { Key, message: 'OK' };
+
+  }, {
+    catch: function(e) {
+      console.error(e);
+    }
+  }));
 };
