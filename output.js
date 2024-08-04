@@ -210,6 +210,32 @@ module.exports = async function(obj, argv) {
 
   if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
 
+
+  if (obj && !obj.schema) {
+    const { inferSchema } = require('./schema');
+    let resolve;
+    const schemaPromise = new Promise(r => resolve = r);
+    obj.schema = () => schemaPromise;
+    const oldStream = stream;
+
+    stream = oldStream.pipe(etl.prescan(argv.prescan_size || 1000, d => {
+      resolve(inferSchema(d));
+      oldStream.destroy();
+    }));
+  };
+
+
+  if (argv.export_schema) {
+    const schema = await obj.schema();
+    stream = etl.toStream(schema);
+  }
+
+  if (argv.export_glue_schema) {
+    const schema = await obj.schema();
+    const { glueSchema } = require('./schema');
+    stream = glueSchema(schema);
+  }
+
   if (argv.count) {
     if (!obj.recordCount)
       throw 'No Recordcount available';

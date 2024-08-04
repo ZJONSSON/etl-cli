@@ -64,6 +64,8 @@
     "raxl": "^0.0.3"
   },
   "tap": {
-    "exclude": ["test/support/broken*"]
+    "exclude": [
+      "test/support/broken*"
+    ]
   }
 }
