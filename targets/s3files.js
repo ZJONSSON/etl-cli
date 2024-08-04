@@ -21,8 +21,6 @@ module.exports = async function(stream, argv) {
 
   const query = { Bucket, Prefix };
 
-  // --target_overwrite   or --target_skip_scan
-
   argv.target_files_scanned = false;
 
   if (!config.overwrite && !config.skip_scan) {
