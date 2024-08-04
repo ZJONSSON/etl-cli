@@ -210,17 +210,20 @@ module.exports = async function(obj, argv) {
 
   if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
 
+  argv.schema_required = argv.schema_required
+    || argv.export_schema
+    || argv.export_glue_schema
+    || (output.schema && output.schema(argv))
+    ? true : false;
 
-  if (obj && !obj.schema) {
+  if (obj && !obj.schema && argv.schema_required) {
     const { inferSchema } = require('./schema');
     let resolve;
     const schemaPromise = new Promise(r => resolve = r);
     obj.schema = () => schemaPromise;
-    const oldStream = stream;
 
-    stream = oldStream.pipe(etl.prescan(argv.prescan_size || 1000, d => {
+    stream = stream.pipe(etl.prescan(argv.prescan_size || 1000, d => {
       resolve(inferSchema(d));
-      oldStream.destroy();
     }));
   };
 
@@ -261,7 +264,10 @@ module.exports = async function(obj, argv) {
     setImmediate(() => process.exit());
   }
   const res = { Σ_in, Σ_out };
-  if (argv.test) res.data = argv.test;
+  if (argv.test) {
+    res.data = argv.test;
+    Object.defineProperty(res, 'argv', { value: argv });
+  }
   if (argv.Σ_skipped) res.Σ_skipped = argv.Σ_skipped;
   return res;
 };

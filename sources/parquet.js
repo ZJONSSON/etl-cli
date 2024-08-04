@@ -2,20 +2,6 @@ const Stream = require('stream');
 const parquet = require('parquetjs-lite');
 const path = require('path');
 
-function removeListElement(obj) {
-  if (obj && typeof obj == 'object') {
-    if (obj.list) {
-      obj = obj.list;
-    } else if (obj.element) {
-      obj = obj.element;
-    };
-    Object.keys(obj).forEach(key => {
-      obj[key] = removeListElement(obj[key]);
-    });
-  }
-  return obj;
-}
-
 function convert(obj) {
   const array = obj?.fields?.list?.fields?.element || obj?.list?.fields?.element;
   if (array) {
