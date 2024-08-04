@@ -111,7 +111,8 @@ module.exports = async function(obj, argv) {
     return d;
   }));
 
-  if (argv.transform) {
+  if (argv.transform && argv.transform.length) {
+    obj = {};
     const transform_concurrency = argv.transform_concurrency || argv.concurrency || 1;
     try {
       vm = require('vm');
@@ -152,6 +153,7 @@ module.exports = async function(obj, argv) {
   }
 
   if (argv.chain) {
+    obj = {};
     let chain = await safeRequire(path.resolve('.', argv.chain));
     chain = chain.chain || chain;
     stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
@@ -208,6 +210,35 @@ module.exports = async function(obj, argv) {
 
   if (argv.collect) stream = stream.pipe(etl.collect(argv.collect));
 
+  argv.schema_required = argv.schema_required
+    || argv.export_schema
+    || argv.export_glue_schema
+    || (output.schema && output.schema(argv))
+    ? true : false;
+
+  if (obj && !obj.schema && argv.schema_required) {
+    const { inferSchema } = require('./schema');
+    let resolve;
+    const schemaPromise = new Promise(r => resolve = r);
+    obj.schema = () => schemaPromise;
+
+    stream = stream.pipe(etl.prescan(argv.prescan_size || 1000, d => {
+      resolve(inferSchema(d));
+    }));
+  };
+
+
+  if (argv.export_schema) {
+    const schema = await obj.schema();
+    stream = etl.toStream(schema);
+  }
+
+  if (argv.export_glue_schema) {
+    const schema = await obj.schema();
+    const { glueSchema } = require('./schema');
+    stream = glueSchema(schema);
+  }
+
   if (argv.count) {
     if (!obj.recordCount)
       throw 'No Recordcount available';
@@ -233,7 +264,10 @@ module.exports = async function(obj, argv) {
     setImmediate(() => process.exit());
   }
   const res = { Σ_in, Σ_out };
-  if (argv.test) res.data = argv.test;
+  if (argv.test) {
+    res.data = argv.test;
+    Object.defineProperty(res, 'argv', { value: argv });
+  }
   if (argv.Σ_skipped) res.Σ_skipped = argv.Σ_skipped;
   return res;
 };

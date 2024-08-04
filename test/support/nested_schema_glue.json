@@ -1,0 +1,1 @@
+[{"Name":"a","Type":"bigint"},{"Name":"b","Type":"struct<c:bigint,e:array<double>,f:struct<g:array<struct<h:bigint,i:bigint,j:bigint>>>>"}]

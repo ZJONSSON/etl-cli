@@ -72,6 +72,7 @@ async function main(argv) {
   }
 
   const _input = await input(source, argv);
+
   if (_input) return output(_input, argv).catch(e => {
     console.error(e);
     process.exit();

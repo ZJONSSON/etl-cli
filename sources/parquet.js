@@ -2,6 +2,44 @@ const Stream = require('stream');
 const parquet = require('parquetjs-lite');
 const path = require('path');
 
+function convert(obj) {
+  const array = obj?.fields?.list?.fields?.element || obj?.list?.fields?.element;
+  if (array) {
+    return {
+      type: 'array',
+      items: convert(array)
+    };
+  }
+
+  if (obj.fields) {
+    return {
+      type: 'object',
+      properties: Object.keys(obj.fields).reduce((acc, field) => {
+        acc[field] = convert(obj.fields[field]);
+        return acc;
+      }, {})
+    };
+  } else {
+
+    if (obj.repeatable) {
+      delete obj.repeatable;
+      return {
+        type: 'array',
+        items: convert(obj),
+      };
+    } else if (obj.type == 'UTF8') {
+      return { type: 'string', comment: obj.type };
+    } else if (obj.type == 'DOUBLE' || obj.type == 'FLOAT') {
+      return { type: 'number', comment: obj.type };
+    } else if (obj.type.includes('INT')) {
+      return { type: 'integer', comment: obj.type };
+    } else if (obj.type == 'BOOLEAN') {
+      return { type: 'boolean', comment: obj.type };
+    } else throw `unknown type ${obj}`;
+
+  }
+}
+
 function removeListElement(obj) {
   if (obj && typeof obj == 'object') {
     if (obj.list) {
@@ -19,6 +57,14 @@ function removeListElement(obj) {
 module.exports = function(argv) {
   let reader, cursor;
   return {
+    schema: async() => {
+      const reader = await parquet.ParquetReader.openFile(path.resolve('./', argv.source));
+      return {
+        type: "object",
+        '$comment': 'extracted from parquet schema',
+        ...convert({ fields: reader.schema.schema })
+      };
+    },
     stream : () => new Stream.Readable({
       read : async function() {
         try {

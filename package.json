@@ -1,6 +1,6 @@
 {
   "name": "etl-cli",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,6 +21,7 @@
     "@aws-sdk/lib-storage": "^3.591.0",
     "@elastic/elasticsearch": "^8.11.0",
     "@google-cloud/bigquery": "^2.0.6",
+    "@jsonhero/schema-infer": "^0.1.5",
     "ajv": "^8.14.0",
     "bluebird": "~3.7.2",
     "bson": "^4.0.3",
@@ -63,6 +64,8 @@
     "raxl": "^0.0.3"
   },
   "tap": {
-    "exclude": ["test/support/broken*"]
+    "exclude": [
+      "test/support/broken*"
+    ]
   }
 }
