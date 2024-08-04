@@ -92,4 +92,15 @@ tap.test('files', async t => {
     t.same( String(await data[0].buffer()), 'This is file B');
     t.same( String(await data[1].buffer()), 'This is file A');
   });
+
+  t.test('writing files with target_gzip', async () => {
+    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --silent --target_gzip=true`;
+    const res = await cli(cmd);
+    t.same(res, { 'Σ_in': 2, 'Σ_out': 2 });
+
+    // check one of the files to ensure it is gzipped
+    const buffer = fs.readFileSync(path.resolve(tmpDir, 'testfiles', 'fileB.txt.gz'));
+    const text = require('zlib').gunzipSync(buffer).toString();
+    t.same(text, 'This is file B');
+  });
 });
