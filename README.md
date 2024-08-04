@@ -147,4 +147,10 @@ etl s3/testbucket/records.json elastic/test2/records --target_host=localhost:920
 ```
 
 ### files / s3files
-If the records being streamed contains `filename` and a `body` which is either a stream or a function that returns a stream, the individual `bodys` can be saved to disk (using `files` target) or to s3 (using `s3files` target).  By default both `files` and `s3files` will only save the file if the filename does not exist.  Overwrite can be enforced by setting `--no_skip=true`
+If the records being streamed contains `filename` and a `body` which is either a stream or a function that returns a stream, the individual `bodys` can be saved to disk (using `files` target) or to s3 (using `s3files` target).  
+
+By default both `files` and `s3files` will only save the file if the filename does not exist.  Both methods start scanning all the files in the target directory to see if they exist or not.  This scan is done in the background (unless you specifiy `--target_scan_await=true`).  You can also skip the scan with `--target_skip_scan=true`.  While the scan is being performed (or if it's skipped), we use fs.stats or getHeadCommand on indvidual files to check if they exist.  
+
+Overwrite can be enforced by specifying `--target_overwrite=true`
+
+Files can be optionally gzipped by specifying `--target_gzip=true`.  A `.gz` extension will be added to the filename and the content will be gzipped.
