@@ -96,14 +96,6 @@ module.exports = async function(obj, argv) {
 
   stream = stream.pipe(etl.map(d => {
     Σ_in++;
-    if (d.filename && d.body && argv.target_gzip) {
-      d.filename += '.gz';
-      const uncompressed = d.body;
-      d.body = async function() {
-        const body = await uncompressed(true);
-        return body.pipe(require('zlib').createGzip());
-      };
-    }
     if (typeof d.body == 'function') {
       d.buffer = async function() {
         let body = await d.body(true);
@@ -249,6 +241,20 @@ module.exports = async function(obj, argv) {
     if (!obj.recordCount)
       throw 'No Recordcount available';
     stream = etl.toStream([{ recordCount: await obj.recordCount(argv) }]);
+  }
+
+  if (argv.target_gzip) {
+    stream = stream.pipe(etl.map(d => {
+      if (d.filename && d.body) {
+        d.filename += '.gz';
+        const uncompressed = d.body;
+        d.body = async function() {
+          const body = await uncompressed(true);
+          return body.pipe(require('zlib').createGzip());
+        };
+      }
+      return d;
+    }));
   }
 
   const o = await output(stream, argv, obj);
