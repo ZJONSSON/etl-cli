@@ -37,7 +37,7 @@
     "mysql": "^2.14.1",
     "nconf": "~0.12.1",
     "node-fetch": "^2.6.1",
-    "parquetjs-lite": "0.8.5",
+    "parquetjs-lite": "0.8.7",
     "pegjs": "^0.10.0",
     "pg": "^8.11.3",
     "pg-query-stream": "^2.0.0",
