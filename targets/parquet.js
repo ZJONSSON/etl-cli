@@ -1,9 +1,8 @@
 const etl = require('etl');
-const parquet = require('parquetjs-lite');
+const parquet = require('@dsnp/parquetjs');
 
-module.exports = (stream, argv, schema) => {
-  schema = schema && schema.parquet && new parquet.ParquetSchema(schema.parquet);
-  if (!schema) throw 'schema missing';
+module.exports = async (stream, argv, obj) => {
+  const schema = parquet.ParquetSchema.fromJsonSchema(await obj.schema(argv));
   const out = etl.map();
 
   parquet.ParquetWriter.openStream(schema, out).then(writer => {
@@ -28,3 +27,5 @@ module.exports = (stream, argv, schema) => {
     }))
     .pipe(etl.toFile(argv.dest));
 };
+
+module.exports.schema = () => true;

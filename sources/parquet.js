@@ -1,5 +1,5 @@
 const Stream = require('stream');
-const parquet = require('parquetjs-lite');
+const parquet = require('@dsnp/parquetjs');
 const path = require('path');
 
 function convert(obj) {
@@ -35,13 +35,18 @@ function convert(obj) {
       return { type: 'integer', comment: obj.type };
     } else if (obj.type == 'BOOLEAN') {
       return { type: 'boolean', comment: obj.type };
-    } else throw `unknown type ${obj}`;
-
+    } else if (obj.type == 'DATE') {
+      return { type: 'string', format: 'date', comment: obj.type };
+    } else {
+      throw `unknown type ${JSON.stringify(obj)}`;
+    }
   }
 }
 
 function removeListElement(obj) {
-  if (obj && typeof obj == 'object') {
+  if (typeof obj == 'bigint') {
+    obj = Number(obj);
+  } else if (obj && typeof obj == 'object') {
     if (obj.list) {
       obj = obj.list;
     } else if (obj.element) {
@@ -49,6 +54,7 @@ function removeListElement(obj) {
     };
     Object.keys(obj).forEach(key => {
       obj[key] = removeListElement(obj[key]);
+      if (obj[key] === null) delete obj[key];
     });
   }
   return obj;
@@ -81,13 +87,13 @@ module.exports = function(argv) {
             }
           }
 
-          const records = await cursor.nextRowGroup();
-
-          if (!records || !records.length) {
-            this.emit('end');
-          } else {
-            records.forEach(record => this.push(removeListElement(record)));
+          let record;
+          // eslint-disable-next-line no-cond-assign
+          while (record = await cursor.next()) {
+            this.push(removeListElement(record));
           }
+          this.emit('end');
+
         } catch(e) {
           this.emit('error', e);
         }
