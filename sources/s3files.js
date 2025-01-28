@@ -22,6 +22,7 @@ module.exports = function(argv) {
             bucket: Bucket,
             filename: d.Key.replace(Prefix, '').replace(/^([/]+)/, ''),
             etag: d.ETag.replace(/"/g, ''),
+            lastModified: d.LastModified,
             size: d.Size,
             getClient: () => client,
             body: async () => {
