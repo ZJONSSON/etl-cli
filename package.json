@@ -33,7 +33,7 @@
     "https-proxy-agent": "^5.0.0",
     "minimist": "~1.2.0",
     "mongodb": "^6.3.0",
-    "mssql": "^5.1.0",
+    "mssql": "^6.0.0",
     "mysql": "^2.14.1",
     "nconf": "~0.12.1",
     "node-fetch": "^2.6.1",
@@ -45,7 +45,7 @@
     "request": "^2.88.0",
     "s3-upload-stream": "~1.0.7",
     "split-string": "^6.1.0",
-    "tedious": "^6.2.0",
+    "tedious": "^13.0.0",
     "ts-node": "^10.9.2",
     "unzipper": "~0.12.1"
   },
