@@ -11,6 +11,6 @@ tap.test('modules', async t => {
     const cmd = `etl ${__dirname}/support/broken_ts test --silent`;
     t.rejects( cli(cmd).catch((e) => {
       throw { message: e.message.split('\n')[0] };
-    }), { message:'⨯ Unable to compile TypeScript:' });
+    }), { message:'Transform failed with 1 error:' });
   });
 });

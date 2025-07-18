@@ -1,4 +1,6 @@
 #! /usr/bin/env node
+//@ts-ignore
+require('tsx/cjs');
 const path = require('path');
 const request = require('request');
 // eslint-disable-next-line no-redeclare
@@ -15,16 +17,7 @@ const input = require('./input');
 const output = require('./output');
 
 async function main(argv) {
-  require('ts-node').register({
-    transpileOnly: argv.ts_transpile === 'false' ? false : true,
-    project: argv.ts_project,
-    compilerOptions: {
-      "target": "ES2022",
-      "module": "commonjs",
-      "esModuleInterop": true,
-      "resolveJsonModule": true
-    }
-  });
+
 
   let source = argv.source;
 
