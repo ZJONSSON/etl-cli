@@ -63,14 +63,18 @@ module.exports = async function(stream, argv) {
       argv.Σ_skipped += 1;
       return { message: 'skipping', Key };
     }
-    const Body = typeof d.body === 'function' ? await d.body() : d.body;
-    const upload = new Upload({ client, params: { Bucket, Key, Body } });
+    const Body = typeof d.body === 'function' ? d.body() : d.body;
+    const upload = new Upload({ client, params: { Bucket, Key, Body: await Body } });
     await upload.done();
     return { Key, message: 'OK' };
   }, {
     catch: function(e, d) {
-      console.error(e);
-      this.write(d);
+      if (argv.throw) {
+        this.emit('error', e);
+      } else {
+        console.error(e);
+        this.write(d);
+      }
     }
   }));
 };
