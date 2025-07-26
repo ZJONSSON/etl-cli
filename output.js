@@ -28,6 +28,7 @@ module.exports = async function(obj, argv) {
 
   // If dest has '/'
   if (dest && dest.match('/')) {
+    dest = dest.replace(/^s3:\/\//, 's3files/');
     dest = dest.split('/');
 
     const trialPath = dest.slice(0, dest.length - 1).join('/');
