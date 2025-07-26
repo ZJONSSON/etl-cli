@@ -5,7 +5,6 @@ const recursive = require('recursive-readdir');
 const convert = require('./lib/convert');
 const path = require('path');
 const os = require('os');
-const { Readable } = require('stream');
 
 module.exports = async function(stream, argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
@@ -31,6 +30,7 @@ module.exports = async function(stream, argv) {
   }
 
   return stream.pipe(etl.map(argv.concurrency || 1, async d => {
+    if (!d.filename) return;
     const Key = path.join(target_dir, d.filename);
     let skip = files.has(Key);
     if (!skip && !argv.target_files_scanned && !argv.target_overwrite) {
@@ -48,11 +48,7 @@ module.exports = async function(stream, argv) {
 
     if (filter_files && !filter_files.test(Key)) return { message: 'ignoring', Key };
 
-    let Body = await (typeof d.body === 'function' ? d.body() : d.body);
-    if (!Body) return { Key, message: 'No body' };
-    if (typeof Body.pipe !== 'function') {
-      Body = Readable.from([].concat(Body));
-    }
+    let Body = await d.body();
 
     Body = convert(Body, d.filename, argv);
     await ensureDir(path.dirname(Key));
