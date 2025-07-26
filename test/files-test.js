@@ -99,14 +99,14 @@ tap.test('files', async t => {
   t.test('writing bodies that are either string, readable, async string or async readable', async () => {
     const cmd = `etl ${__dirname}/support/bodies.js files/${tmpDir}/testfiles/`;
     const res = await cli(cmd);
-    t.same(res, { 'Σ_in': 8, 'Σ_out': 8 });
+    t.same(res, { 'Σ_in': 10, 'Σ_out': 9, 'Σ_skipped': 1 });
     console.log(tmpDir);
   });
 
   t.only('writing gzip bodies that are either string, readable, async string or async readable', async () => {
     const cmd = `etl ${__dirname}/support/bodies.js files/${tmpDir}/testfiles/ --target_gzip=true`;
     const res = await cli(cmd);
-    t.same(res, { 'Σ_in': 8, 'Σ_out': 8 });
+    t.same(res, { 'Σ_in': 10, 'Σ_out': 9, 'Σ_skipped': 1 });
   });
 
 

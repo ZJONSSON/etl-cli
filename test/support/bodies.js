@@ -3,6 +3,8 @@ const { Readable } = require("stream");
 module.exports = () => {
   const body = 'file contents';
   return Readable.from([
+    { filename: null, body }, // ignored
+    { filename: 'nobody.txt' }, // empty
     { filename: 'string.txt', body },
     { filename: 'buffer.txt', body },
     { filename: 'stream.txt', body },

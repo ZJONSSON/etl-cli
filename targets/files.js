@@ -2,9 +2,9 @@ const etl = require('etl');
 const { createWriteStream, rename, utimes, stat, ensureDir } = require('fs-extra');
 const recursive = require('recursive-readdir');
 
-const convert = require('./lib/convert');
 const path = require('path');
 const os = require('os');
+const bodyStream = require('./lib/bodyStream');
 
 module.exports = async function(stream, argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
@@ -48,9 +48,8 @@ module.exports = async function(stream, argv) {
 
     if (filter_files && !filter_files.test(Key)) return { message: 'ignoring', Key };
 
-    let Body = await d.body();
+    const Body = await bodyStream(d, argv);
 
-    Body = convert(Body, d.filename, argv);
     await ensureDir(path.dirname(Key));
     const tmpKey = `${Key}.download`;
     await new Promise( (resolve, reject) => {
@@ -72,7 +71,8 @@ module.exports = async function(stream, argv) {
   }, {
     catch: function(e) {
       if (argv.throw) {
-        throw new Error(e);
+        this.emit('error', e);
+        return;
       }
       console.error(e);
     }
