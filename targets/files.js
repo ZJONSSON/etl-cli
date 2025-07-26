@@ -48,10 +48,13 @@ module.exports = async function(stream, argv) {
 
     if (filter_files && !filter_files.test(Key)) return { message: 'ignoring', Key };
 
-    let Body = typeof d.body === 'function' ? d.body() : d.body;
-    if (typeof Body == 'function') Body = Body();
+    let Body = await (typeof d.body === 'function' ? d.body() : d.body);
     if (!Body) return { Key, message: 'No body' };
-    Body = convert(Readable.from(await Body), d.filename, argv);
+    if (typeof Body.pipe !== 'function') {
+      Body = Readable.from([].concat(Body));
+    }
+
+    Body = convert(Body, d.filename, argv);
     await ensureDir(path.dirname(Key));
     const tmpKey = `${Key}.download`;
     await new Promise( (resolve, reject) => {

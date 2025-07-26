@@ -6,6 +6,7 @@ const { paginateListObjectsV2,
   HeadObjectCommand
 } = require('@aws-sdk/client-s3');
 const { createConfig } = require('../util');
+const { Readable } = require('stream');
 
 
 module.exports = async function(stream, argv) {
@@ -63,8 +64,12 @@ module.exports = async function(stream, argv) {
       argv.Σ_skipped += 1;
       return { message: 'skipping', Key };
     }
-    const Body = typeof d.body === 'function' ? d.body() : d.body;
-    const upload = new Upload({ client, params: { Bucket, Key, Body: await Body } });
+    let Body = await (typeof d.body === 'function' ? d.body() : d.body);
+    if (!Body) return { Key, message: 'No body' };
+    if (typeof Body.pipe !== 'function') {
+      Body = Readable.from([].concat(Body));
+    }
+    const upload = new Upload({ client, params: { Bucket, Key, Body } });
     await upload.done();
     return { Key, message: 'OK' };
   }, {
