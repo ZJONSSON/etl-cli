@@ -17,7 +17,7 @@ tap.after(async () => {
 tap.test('files', async t => {
 
   t.test('files body', async () => {
-    const cmd = `etl files/${__dirname}/support/testfiles test --silent`;
+    const cmd = `etl files/${__dirname}/support/testfiles test`;
     const res = await cli(cmd);
     const data = res.data;
 
@@ -35,7 +35,7 @@ tap.test('files', async t => {
   });
 
   t.test('files buffer', async () => {
-    const cmd = `etl files/${__dirname}/support/testfiles test --silent`;
+    const cmd = `etl files/${__dirname}/support/testfiles test`;
     const res = await cli(cmd);
     const data = res.data;
     t.same(data[0].filename, 'fileB.txt');
@@ -45,46 +45,46 @@ tap.test('files', async t => {
   });
 
   t.test('writing files', async () => {
-    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --silent`;
+    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/`;
     const res = await cli(cmd);
     t.same(res, { 'Σ_in': 2, 'Σ_out': 2 });
   });
 
   t.test('writing files again', async () => {
-    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --silent`;
+    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/`;
     const res = await cli(cmd);
     t.same(res, { 'Σ_in': 2, 'Σ_out': 2, Σ_skipped: 2 });
   });
 
   t.test('writing files again via params', async () => {
-    const cmd = `etl files --source_dir=${__dirname}/support/testfiles files --target_dir=${tmpDir}/testfiles/ --silent`;
+    const cmd = `etl files --source_dir=${__dirname}/support/testfiles files --target_dir=${tmpDir}/testfiles/`;
     const res = await cli(cmd);
     t.same(res, { 'Σ_in': 2, 'Σ_out': 2, Σ_skipped: 2 });
   });
 
   t.test('writing files skipping scan', async () => {
-    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --silent --target_skip_scan=true`;
+    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --target_skip_scan=true`;
     const res = await cli(cmd);
     t.same(res.argv.target_files_scanned, false);
     t.same(res, { 'Σ_in': 2, 'Σ_out': 2, Σ_skipped: 2 });
   });
 
   t.test('writing files await scan', async () => {
-    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --silent --target_await_scan=true`;
+    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --target_await_scan=true`;
     const res = await cli(cmd);
     t.same(res.argv.target_files_scanned, true);
     t.same(res, { 'Σ_in': 2, 'Σ_out': 2, Σ_skipped: 2 });
   });
 
   t.test('writing files with overwrite', async () => {
-    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --silent --target_overwrite=true`;
+    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --target_overwrite=true`;
     const res = await cli(cmd);
     t.same(res.argv.target_files_scanned, false);
     t.same(res, { 'Σ_in': 2, 'Σ_out': 2 });
   });
 
   t.test('reading them back', async () => {
-    const cmd = `etl files/${tmpDir}/testfiles test --silent`;
+    const cmd = `etl files/${tmpDir}/testfiles test`;
     const res = await cli(cmd);
     const data = res.data;
     t.same(data[0].filename, 'fileB.txt');
@@ -94,7 +94,7 @@ tap.test('files', async t => {
   });
 
   t.test('writing files with target_gzip', async () => {
-    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --silent --target_gzip=true`;
+    const cmd = `etl files/${__dirname}/support/testfiles files/${tmpDir}/testfiles/ --target_gzip=true`;
     const res = await cli(cmd);
     t.same(res, { 'Σ_in': 2, 'Σ_out': 2 });
 
@@ -103,4 +103,19 @@ tap.test('files', async t => {
     const text = require('zlib').gunzipSync(buffer).toString();
     t.same(text, 'This is file B');
   });
+
+  t.test('writing bodies that are either string, readable, async string or async readable', async () => {
+    const cmd = `etl ${__dirname}/support/bodies.js files/${tmpDir}/testfiles/`;
+    const res = await cli(cmd);
+    t.same(res, { 'Σ_in': 5, 'Σ_out': 5 });
+    console.log(tmpDir);
+  });
+
+  t.only('writing gzip bodies that are either string, readable, async string or async readable', async () => {
+    const cmd = `etl ${__dirname}/support/bodies.js files/${tmpDir}/testfiles/ --target_gzip=true`;
+    const res = await cli(cmd);
+    t.same(res, { 'Σ_in': 5, 'Σ_out': 5 });
+  });
+
+
 });

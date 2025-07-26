@@ -5,6 +5,7 @@ const recursive = require('recursive-readdir');
 const convert = require('./lib/convert');
 const path = require('path');
 const os = require('os');
+const { Readable } = require('stream');
 
 module.exports = async function(stream, argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
@@ -47,10 +48,10 @@ module.exports = async function(stream, argv) {
 
     if (filter_files && !filter_files.test(Key)) return { message: 'ignoring', Key };
 
-    let Body = typeof d.body === 'function' ? await d.body() : d.body;
+    let Body = typeof d.body === 'function' ? d.body() : d.body;
     if (typeof Body == 'function') Body = Body();
     if (!Body) return { Key, message: 'No body' };
-    Body = convert(Body, d.filename, argv);
+    Body = convert(Readable.from(await Body), d.filename, argv);
     await ensureDir(path.dirname(Key));
     const tmpKey = `${Key}.download`;
     await new Promise( (resolve, reject) => {
@@ -71,6 +72,9 @@ module.exports = async function(stream, argv) {
 
   }, {
     catch: function(e) {
+      if (argv.throw) {
+        throw new Error(e);
+      }
       console.error(e);
     }
   }));

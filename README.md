@@ -154,3 +154,5 @@ By default both `files` and `s3files` will only save the file if the filename do
 Overwrite can be enforced by specifying `--target_overwrite=true`
 
 Files can be optionally gzipped by specifying `--target_gzip=true`.  A `.gz` extension will be added to the filename and the content will be gzipped.
+
+Instead of specifying s3files source or target you can also use a full s3 url, i.e. s3://bucket/path/to/file

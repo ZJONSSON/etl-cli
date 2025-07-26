@@ -60,6 +60,7 @@ async function main(argv) {
   }
 
   if (source) {
+    source = source.replace(/^s3:\//, 's3files');
     argv.source_dir = argv.source_dir || source.split('/').slice(1).join('/');
     argv.source_params = source.split('/').slice(1);
   }

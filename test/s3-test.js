@@ -70,7 +70,7 @@ tap.test('s3files', async t => {
   });
 
   t.test('downloading files from s3', async t => {
-    const cmd = `etl s3files/${Bucket}/test test --silent --source_endpoint=http://localhost:9090 --source_forcePathStyle=true`;
+    const cmd = `etl s3://${Bucket}/test test --silent --source_endpoint=http://localhost:9090 --source_forcePathStyle=true`;
     const res = await cli(cmd);
     const data = res.data;
     t.same(data[0].filename, 'subdirectory/fileB.txt');
@@ -86,11 +86,17 @@ tap.test('s3files', async t => {
   });
 
   t.test('reading gzipped files from s3', async t => {
-    const cmd = `etl s3files/${Bucket}/test/gzip test --silent --source_endpoint=http://localhost:9090 --source_forcePathStyle=true`;
+    const cmd = `etl s3://${Bucket}/test/gzip test --silent --source_endpoint=http://localhost:9090 --source_forcePathStyle=true`;
     const res = await cli(cmd);
     const buffer = await res.data[0].buffer();
     const text = require('zlib').gunzipSync(buffer).toString();
     t.same( res.data[0].filename, 'fileB.txt.gz');
     t.same( text, 'This is file B');
+  });
+
+  t.test('writing bodies that are either string, readable, async string or async readable', async t => {
+    const cmd = `etl ${__dirname}/support/bodies.js s3files/${Bucket}/test/bodies --target_endpoint=http://localhost:9090 --target_forcePathStyle=true --target_gzip=true`;
+    const res = await cli(cmd);
+    t.same(res, { 'Σ_in': 5, 'Σ_out': 5 });
   });
 });

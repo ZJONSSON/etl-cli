@@ -5,6 +5,7 @@ const Bluebird = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
 const { safeRequire } = require('./util');
+const { Readable } = require('stream');
 
 module.exports = async function(obj, argv) {
   let vm, select, remove;
@@ -28,6 +29,7 @@ module.exports = async function(obj, argv) {
 
   // If dest has '/'
   if (dest && dest.match('/')) {
+    dest = dest.replace(/^s3:\/\//, 's3files/');
     dest = dest.split('/');
 
     const trialPath = dest.slice(0, dest.length - 1).join('/');
@@ -96,11 +98,14 @@ module.exports = async function(obj, argv) {
 
   stream = stream.pipe(etl.map(d => {
     Σ_in++;
-    if (typeof d.body == 'function') {
+    if (d.body) {
       d.buffer = async function() {
-        let body = await d.body(true);
-        body = await body.pipe(etl.map()).promise();
-        return Buffer.concat(body);
+        const body = await (typeof d.body === 'function' ? d.body(true) : d.body);
+        if (typeof body === 'string' || Buffer.isBuffer(body)) {
+          return body;
+        };
+        return Buffer.concat(await Readable.from(body).toArray());
+
       };
     }
     if (d.__line !== undefined) {
@@ -249,8 +254,8 @@ module.exports = async function(obj, argv) {
         d.filename += '.gz';
         const uncompressed = d.body;
         d.body = async function() {
-          const body = await uncompressed(true);
-          return body.pipe(require('zlib').createGzip());
+          const body = typeof uncompressed === 'function' ? uncompressed(true) : uncompressed;
+          return Readable.from(await body).pipe(require('zlib').createGzip());
         };
       }
       return d;
