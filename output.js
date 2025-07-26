@@ -104,7 +104,7 @@ module.exports = async function(obj, argv) {
         if (typeof body === 'string' || Buffer.isBuffer(body)) {
           return body;
         };
-        return Buffer.concat(await Readable.from(body).toArray())
+        return Buffer.concat(await Readable.from(body).toArray());
 
       };
     }
