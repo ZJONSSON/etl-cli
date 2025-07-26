@@ -12,6 +12,7 @@ module.exports = async function(obj, argv) {
   argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
   argv.Σ_skipped = 0;
   let dest = argv.target || argv?._?.[0];
+  dest = dest?.replace(/^s3:\//, 's3files');
   if (!argv.target_dir && dest) {
     argv.target_dir = dest.split('/').slice(1).join('/');
   }
@@ -29,7 +30,6 @@ module.exports = async function(obj, argv) {
 
   // If dest has '/'
   if (dest && dest.match('/')) {
-    dest = dest.replace(/^s3:\/\//, 's3files/');
     dest = dest.split('/');
 
     const trialPath = dest.slice(0, dest.length - 1).join('/');
@@ -99,6 +99,17 @@ module.exports = async function(obj, argv) {
   stream = stream.pipe(etl.map(d => {
     Σ_in++;
     if (d.body) {
+      const origBody = d.body;
+      d.body = async () => {
+        let body = await (typeof origBody === 'function' ? origBody(true) : origBody);
+        if (typeof body.pipe !== 'function') {
+          if (body && typeof body === 'object') {
+            body = JSON.stringify(body);
+          }
+          body = Readable.from([].concat(body));
+        }
+        return body;
+      };
       d.buffer = async function() {
         const body = await (typeof d.body === 'function' ? d.body(true) : d.body);
         if (typeof body === 'string' || Buffer.isBuffer(body)) {
