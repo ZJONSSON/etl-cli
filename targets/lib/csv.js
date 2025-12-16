@@ -36,6 +36,9 @@ module.exports = function(stream, argv) {
       d.forEach(d => headers = getHeaders(d, headers)))
     )
     .pipe(etl.map(d => flattenData(headers, d)))
-    .pipe(csvWriter());
+    .pipe(csvWriter({
+      separator: argv.target_separator,
+      newline: argv.target_newline
+    }));
 
 };
