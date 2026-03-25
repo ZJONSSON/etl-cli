@@ -11,6 +11,7 @@ module.exports = async function(obj, argv) {
   let vm, select, remove;
   argv = Object.assign({}, argv || minimist(process.argv.slice(2)));
   argv.Σ_skipped = 0;
+  argv.Σ_out = 0;
   let dest = argv.target || argv?._?.[0];
   dest = dest?.replace(/^s3:\//, 's3files');
   if (!argv.target_dir && dest) {
@@ -67,7 +68,7 @@ module.exports = async function(obj, argv) {
       .then(() => console.log('total', total));
 
 
-  let Σ_out = 0, Σ_in = 0, last = 0, counter, total;
+  let Σ_in = 0, last = 0, counter, total;
   if (!argv.silent) {
     counter = setInterval(() => {
       const Δ = Σ_in - last;
@@ -75,7 +76,7 @@ module.exports = async function(obj, argv) {
       total = argv.recordCount || total;
       const heap = Math.round(process.memoryUsage().heapUsed / 1000000);
       const skipped = argv.Σ_skipped ? ` (${argv.Σ_skipped} skipped) ` : '';
-      console.log(`Σ${Σ_in} Δ${Δ} ${total && (Math.floor(Σ_in / total * 10000) / 100) + '%' || ''} (output: Σ${Σ_out}) ${skipped}- Heap: ${heap} Mb`);
+      console.log(`Σ${Σ_in} Δ${Δ} ${total && (Math.floor(Σ_in / total * 10000) / 100) + '%' || ''} (output: Σ${argv.Σ_out}) ${skipped}- Heap: ${heap} Mb`);
     }, argv.report_interval || 1000);
   }
 
@@ -192,11 +193,11 @@ module.exports = async function(obj, argv) {
 
     total = d.__total || total;
 
-    if (argv.limit && Σ_out > argv.limit)
+    if (argv.limit && argv.Σ_out > argv.limit)
       return;
 
-    if (!argv.limit || Σ_out <= argv.limit) {
-      Σ_out += 1;
+    if (!argv.limit || argv.Σ_out <= argv.limit) {
+      argv.Σ_out += 1;
       return d;
     }
   }, { highWaterMark: argv.highWaterMark || 100 }));
@@ -270,7 +271,7 @@ module.exports = async function(obj, argv) {
   clearInterval(counter);
 
   if (!argv.silent) {
-    let msg = `Completed ${Σ_in} records in and ${Σ_out} record out.`;
+    let msg = `Completed ${Σ_in} records in and ${argv.Σ_out} record out.`;
     if (argv.Σ_skipped) msg += ` (${argv.Σ_skipped} skipped)`;
     console.log(msg);
   }
@@ -278,7 +279,7 @@ module.exports = async function(obj, argv) {
   if (argv.exit) {
     setImmediate(() => process.exit());
   }
-  const res = { Σ_in, Σ_out };
+  const res = { Σ_in, Σ_out: argv.Σ_out };
   if (argv.test) {
     res.data = argv.test;
   }

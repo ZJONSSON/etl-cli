@@ -43,6 +43,7 @@ module.exports = async function(stream, argv) {
   return stream.pipe(etl.map(argv.concurrency || 1, async d => {
     if (!d.filename || !d.body) {
       argv.Σ_skipped += 1;
+      argv.Σ_out -= 1;
       return;
     }
     const Key = path.join(Prefix, d.filename);
