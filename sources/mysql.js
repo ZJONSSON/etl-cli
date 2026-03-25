@@ -21,6 +21,7 @@ module.exports = argv => {
     stream : () => {
       return p.stream(query).
         on('end', () => pool.end());
-    }
+    },
+    close: () => pool.end()
   };
 };
