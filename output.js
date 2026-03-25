@@ -154,8 +154,14 @@ module.exports = async function(obj, argv) {
 
   if (argv.chain) {
     obj = {};
-    let chain = await safeRequire(path.resolve('.', argv.chain));
-    chain = chain.chain || chain;
+    let chain;
+    try {
+      vm = vm || require('vm');
+      chain = vm.runInNewContext(`ret = ${argv.chain}`);
+    } catch(_e) {
+      chain = await safeRequire(path.resolve('.', argv.chain));
+      chain = chain.chain || chain;
+    }
     stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
   }
 
