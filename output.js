@@ -97,12 +97,9 @@ module.exports = async function(obj, argv) {
   });
 
   stream = stream.pipe(etl.map(d => {
+    if (d === undefined || d === null) return;
     Σ_in++;
     if (d.body) {
-      if (!d.filename) {
-        argv.Σ_skipped += 1;
-        return;
-      }
       d.buffer = async function() {
         const stream = await bodyStream(d, argv);
         return Buffer.concat(await stream.toArray());

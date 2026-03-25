@@ -30,7 +30,11 @@ module.exports = async function(stream, argv) {
   }
 
   return stream.pipe(etl.map(argv.concurrency || 1, async d => {
-    if (!d.filename) return;
+    if (!d.filename || !d.body) {
+      argv.Σ_skipped += 1;
+      return;
+    }
+
     const Key = path.join(target_dir, d.filename);
     let skip = files.has(Key);
     if (!skip && !argv.target_files_scanned && !argv.target_overwrite) {
