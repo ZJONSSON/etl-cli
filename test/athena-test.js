@@ -10,7 +10,8 @@ process.env.AWS_REGION = 'us-east-1';
 
 app.use(express.raw({ type: '*/*', limit: '10mb' }));
 app.use((req, res) => {
-  const body = typeof req.body == 'object' ? req.body : JSON.parse(req.body);
+  const raw = Buffer.isBuffer(req.body) ? req.body.toString() : req.body;
+  const body = raw && typeof raw === 'string' ? JSON.parse(raw) : (raw || {});
   const target = req.headers['x-amz-target'];
 
   if (target === 'AmazonAthena.StartQueryExecution') {
