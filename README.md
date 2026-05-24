@@ -73,21 +73,32 @@ Both source and target accept a path-like syntax that gets parsed into `source_*
 
 ### Javascript source
 
-A typical source is a javascript file that fetches something from web, ftp site or other remote location. A javascript source file needs to export an object that contains a function called `stream`.  This function will receive `argv` as first argument, which gives access to command line arguments and config.  The function needs to return a valid node stream in objectMode.
+A typical source is a javascript file that fetches something from a web API, FTP site, database, or other remote location.  The file must export a `stream` function that receives `argv` (command line arguments and config) and returns either a node stream in objectMode or an async generator that yields records.
 
-Optionally the object can also contain `recordCount` function that should return the recordCount of the source stream (if available).  This allows the runner to report % completed as the stream is running.
+The file can export in one of three equivalent forms:
 
-The javascript file can also just return a function that returns a stream.
+* `module.exports = argv => stream` — shorthand: the file itself is the `stream` function
+* `module.exports.stream = (argv) => stream` — named export; allows adding `recordCount` alongside it
+* `module.exports.stream = async function* (argv) { yield ...; }` — async generator; no stream boilerplate needed
 
-Here is an example of javascript source:
+The named-export forms can also include a `recordCount` function that returns the total number of records, which lets the runner report % completed as the stream runs.
 
-```
+```js
+// classic stream form
 const etl = require('etl');
-
 module.exports = argv => {
   const arr = new Array(argv.count || 1000);
-  return etl.toStream([...arr].map( (d,i) => ({i})));
-}
+  return etl.toStream([...arr].map((d, i) => ({ i })));
+};
+```
+
+```js
+// async generator form — no stream boilerplate needed
+module.exports.stream = async function* (argv) {
+  for (let i = 0; i < (argv.count || 1000); i++) {
+    yield { i };
+  }
+};
 ```
 
 
@@ -296,8 +307,56 @@ etl input.csv output.json --transform=./transforms/normalize.js
 
 The module may export:
 * a function `(d, argv) => d` - applied with `etl.map` at `--transform_concurrency`
-* `{ transform, catch, flush }` - a fully customized `etl.map`
+* `{ transform, catch, flush, finalize }` - a customized `etl.map`; see `finalize` below
 * `{ chain }` (or a function with `.chain = true`) - applied with `etl.chain` instead of `etl.map`
+* an async generator `async function* (d, argv) { yield ...; }` - applied with `stream.flatMap` at `--transform_concurrency`.   Each upstream record can yield zero or many downstream records, e.g. fanning out a parent record into its children.  Note: with `--transform_concurrency > 1` output order across records is not guaranteed.
+
+Example async-generator transform (fan-out):
+
+```js
+module.exports = async function* (row, argv) {
+  if (row.skip) return;
+  yield { id: row.id, type: 'main' };
+  yield { id: row.id, type: argv.extra_type || 'extra' };
+};
+```
+
+#### finalize
+
+Any transform module (function or async generator) can export a `finalize` function that runs once after all upstream records have been processed.  It is useful for flushing accumulators or appending summary records.
+
+`finalize` can emit records in two ways — both are supported and both are emitted downstream:
+* call `this.push(record)` for multiple records
+* return a value (or `yield` values if `finalize` is itself an async generator)
+
+```js
+// regular function transform with a finalize that appends a summary record
+let count = 0;
+
+module.exports = function(d) {
+  count++;
+  return d;
+};
+
+module.exports.finalize = async function* () {
+  yield { summary: 'total', count };
+};
+```
+
+`finalize` also works when the transform is an async generator:
+
+```js
+let seen = 0;
+
+module.exports = async function* (d) {
+  seen++;
+  yield d;
+};
+
+module.exports.finalize = async function* () {
+  yield { finalized: seen };
+};
+```
 
 Multiple transforms can be chained with comma separation: `--transform=./step1.js,./step2.js,./step3.js`
 

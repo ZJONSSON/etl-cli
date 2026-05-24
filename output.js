@@ -4,6 +4,8 @@ const path = require('path');
 const Bluebird = require('bluebird');
 const nconf = require('nconf');
 const fs = require('fs');
+const { PassThrough, Readable } = require('stream');
+const { types } = require('util');
 const { safeRequire } = require('./util');
 const bodyStream = require('./targets/lib/bodyStream');
 
@@ -88,9 +90,11 @@ module.exports = async function(obj, argv) {
     console.log(`Target: ${dest} - type ${type}  ${ (!!argv.upsert && 'w/upsert') || (!!argv.update && 'w/update') || ''}`);
   }
 
-  let stream = etl.toStream(function() {
-    return typeof obj.stream == 'function' ? obj.stream.call(this, argv) : obj.stream;
-  });
+  let stream = types.isGeneratorFunction(obj.stream)
+    ? Readable.from(obj.stream(argv))
+    : etl.toStream(function() {
+      return typeof obj.stream == 'function' ? obj.stream.call(this, argv) : obj.stream;
+    });
 
   stream.on('error', e => {
     console.error('error', e);
@@ -127,8 +131,11 @@ module.exports = async function(obj, argv) {
       const transforms = argv.transform.split(',');
       for (const i in transforms) {
         const name = transforms[i];
-        let transform = await safeRequire(path.resolve('.', name));
-        transform = transform.transform || transform.default || transform;
+        const mod = await safeRequire(path.resolve('.', name));
+        const transform = mod.transform || mod.default || mod;
+        const onError = transform.catch || mod.catch;
+        const flush = transform.flush || mod.flush;
+        const finalize = transform.finalize || mod.finalize;
 
 
         // If the transform should be chained, we chain instead of map
@@ -143,12 +150,34 @@ module.exports = async function(obj, argv) {
           process.exit();
         }
 
-        stream = stream.pipe(etl.map(transform_concurrency, async function(d) {
-          return transform.call(this, d, argv);
-        }, {
-          catch: transform.catch ? function(e, d) { transform.catch.call(this, e, d, argv); } : console.log,
-          flush: transform.flush
-        }));
+        stream = types.isGeneratorFunction(transform)
+          ? stream.flatMap(d => transform(d, argv), { concurrency: transform_concurrency })
+          : stream.pipe(etl.map(transform_concurrency, async function(d) {
+            return transform.call(this, d, argv);
+          }, {
+            catch: onError ? function(e, d) { onError.call(this, e, d, argv); } : console.log,
+            flush
+          }));
+
+        if (typeof finalize === 'function') {
+          stream = stream.pipe(new PassThrough({
+            objectMode: true,
+            async flush(cb) {
+              try {
+                const res = finalize.call(this, argv);
+                if ( types.isGeneratorFunction(finalize) ) {
+                  for await (const d of res) this.push(d);
+                } else {
+                  const d = await res;
+                  if (d != null) this.push(d);
+                }
+                cb();
+              } catch(e) {
+                cb(e);
+              }
+            }
+          }));
+        }
       };
     }
   }

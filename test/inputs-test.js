@@ -67,4 +67,13 @@ tap.test('inputs', async t => {
       }
     }]);
   });
+
+  t.test('async iterator', async () => {
+    const cmd = `etl ${__dirname}/support/asyncIterator.js test --silent --n=3`;
+    const res = await cli(cmd);
+    t.same(res.data, [
+      { a: 3 },
+      { a: 2 }
+    ]);
+  });
 });
