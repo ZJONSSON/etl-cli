@@ -1,3 +1,5 @@
+[![Coverage](https://ZJONSSON.github.io/etl-cli/badge.svg)](https://ZJONSSON.github.io/etl-cli/)
+
 Command line tool for etl pipelines.
 
 Install globally to have `etl` available on the command line:
