@@ -40,5 +40,3 @@ jobs:
             exit 0
           fi
           exit $EXIT
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
