@@ -7,6 +7,8 @@ const fs = require('fs');
 tap.before(async () => {
   await fs.promises.mkdir(tmpDir);
   await fs.promises.mkdir(path.resolve(tmpDir, 'testfiles'));
+  await fs.promises.mkdir(path.resolve(tmpDir, 'jsonfiles'));
+  await fs.promises.writeFile(path.resolve(tmpDir, 'jsonfiles', 'data.json'), JSON.stringify({ a: 1, b: 2 }));
 });
 
 tap.after(async () => {
@@ -20,20 +22,32 @@ tap.test('files', async t => {
     const res = await cli(cmd);
     const data = res.data;
 
-    t.same(data[0].filename, 'fileB.txt');
-    t.same(data[1].filename, 'folderA/fileA.txt');
-    t.same( String(await data[0].buffer()), 'This is file B');
-    t.same( String(await data[1].buffer()), 'This is file A');
+    const fileB = data.find(d => d.filename === 'fileB.txt');
+    const fileA = data.find(d => d.filename === 'folderA/fileA.txt');
+    t.same(fileB.filename, 'fileB.txt');
+    t.same(fileA.filename, 'folderA/fileA.txt');
+    t.same( String(await fileB.buffer()), 'This is file B');
+    t.same( String(await fileA.buffer()), 'This is file A');
   });
 
   t.test('files buffer', async () => {
     const cmd = `etl files/${__dirname}/support/testfiles test`;
     const res = await cli(cmd);
     const data = res.data;
-    t.same(data[0].filename, 'fileB.txt');
-    t.same(data[1].filename, 'folderA/fileA.txt');
-    t.same( String(await data[0].buffer()), 'This is file B');
-    t.same( String(await data[1].buffer()), 'This is file A');
+    const fileB = data.find(d => d.filename === 'fileB.txt');
+    const fileA = data.find(d => d.filename === 'folderA/fileA.txt');
+    t.same(fileB.filename, 'fileB.txt');
+    t.same(fileA.filename, 'folderA/fileA.txt');
+    t.same( String(await fileB.buffer()), 'This is file B');
+    t.same( String(await fileA.buffer()), 'This is file A');
+  });
+
+  t.test('files json', async () => {
+    const cmd = `etl files/${tmpDir}/jsonfiles test`;
+    const res = await cli(cmd);
+    const data = res.data;
+    const jsonFile = data.find(d => d.filename === 'data.json');
+    t.same(await jsonFile.json(), { a: 1, b: 2 });
   });
 
   t.test('writing files', async () => {
@@ -79,10 +93,12 @@ tap.test('files', async t => {
     const cmd = `etl files/${tmpDir}/testfiles test`;
     const res = await cli(cmd);
     const data = res.data;
-    t.same(data[0].filename, 'fileB.txt');
-    t.same(data[1].filename, 'folderA/fileA.txt');
-    t.same( String(await data[0].buffer()), 'This is file B');
-    t.same( String(await data[1].buffer()), 'This is file A');
+    const fileB = data.find(d => d.filename === 'fileB.txt');
+    const fileA = data.find(d => d.filename === 'folderA/fileA.txt');
+    t.same(fileB.filename, 'fileB.txt');
+    t.same(fileA.filename, 'folderA/fileA.txt');
+    t.same( String(await fileB.buffer()), 'This is file B');
+    t.same( String(await fileA.buffer()), 'This is file A');
   });
 
   t.test('writing files with target_gzip', async () => {

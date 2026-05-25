@@ -109,6 +109,9 @@ module.exports = async function(obj, argv) {
         const stream = await bodyStream(d, argv);
         return Buffer.concat(await stream.toArray());
       };
+      d.json = async function() {
+        return JSON.parse(await d.buffer());
+      };
     }
     if (d.__line !== undefined) {
       Object.defineProperty(d, '__line', { value: d.__line, enumerable: false });
