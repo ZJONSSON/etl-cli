@@ -277,7 +277,11 @@ console.log(result.Σ_in, result.Σ_out, result.data);
 ```
 
 ### files / s3files / sftp
-If the records being streamed contain `filename` and a `body`, the individual bodies can be saved to disk (using `files` target), to s3 (using `s3files` target) or to a remote sftp directory (using `sftp` target).   `body` can be:
+If the records being streamed contain `filename` and a `body`, the individual bodies can be saved to disk (using `files` target), to s3 (using `s3files` target) or to a remote sftp directory (using `sftp` target).   Records with a `body` also get two convenience methods added automatically:
+* `await d.buffer()` — reads the body and returns a `Buffer`
+* `await d.json()` — reads the body and returns the parsed JSON (`JSON.parse(await d.buffer())`)
+
+`body` can be:
 * a string or Buffer
 * a node Readable stream
 * a function that returns any of the above (or a Promise of any of the above)
