@@ -82,11 +82,11 @@ module.exports = async function(source, argv) {
     obj = (await safeRequire(sourcePath))(argv);
   } else {
     obj = await safeRequire(path.resolve('.', originalSource));
+    obj = obj.default || obj;
   }
 
-  if (!obj.stream)
+  if (!obj.stream && typeof obj === 'function')
     obj.stream = obj;
-
   if (!argv.silent)
     console.log(`Source: ${source + (argv.inject ? ' injected' : '')} - type: ${type}`);
 
