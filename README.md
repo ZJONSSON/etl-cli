@@ -25,7 +25,7 @@ source can be any of the following:
 * directory of files (`files/<dir>`, emits `{ filename, body }` records, body is lazy)
 * sftp directory (`sftp/<path>`, walks remote directory and emits `{ filename, body }` records)
 * s3 prefix (`s3files/<bucket>/<prefix>` or `s3://bucket/prefix`, emits `{ filename, body }` records)
-* database/collection/table (elastic, mysql, mssql, postgres, mongo, athena)
+* database/collection/table (elastic, mysql, mssql, postgres, mongo, athena, dynamo)
 
 target can be any of the following:
 * .json
@@ -34,7 +34,7 @@ target can be any of the following:
 * directory of files (`files/<dir>`, writes each `{ filename, body }` record to disk)
 * sftp directory (`sftp/<path>`, uploads each `{ filename, body }` record over sftp)
 * s3 link to either .json or .csv file (single object), or `s3files/<bucket>/<prefix>` for multiple objects
-* database/collection/table (elastic, mysql, postgres, mongo, bigquery)
+* database/collection/table (elastic, mysql, postgres, mongo, bigquery, dynamo)
 * `screen` (default if no target specified - pretty-prints to stdout)
 * `test` (collects records into the result for programmatic / test usage)
 
@@ -151,6 +151,7 @@ Many of the sources/targets require specific properties defined to function.   I
 * sftp: `host`, `port` (default 22), `username`, `password`, `privateKeyFile`, `path`, `filter`
 * files: `dir`, `filter-files` (regex)
 * athena: `database`, `table`, `outputLocation`
+* dynamo: `region`, `endpoint` (for local/custom endpoint), `collection` (table name, from path `dynamo/<table>`), `indextype` (GSI/LSI name for source, from path `dynamo/<table>/<gsi>`), `query` (JSON FilterExpression object for source)
 
 
 
@@ -238,6 +239,22 @@ Run an Athena query and dump results to a parquet file (using a schema):
 ```
 etl athena results.parquet --database=my_db --source_query="select * from my_table where dt='2024-01-01'" --outputLocation=s3://my-athena-output/queries/ --schema=schema.json
 ```
+
+Scan a DynamoDB table to JSON:
+```
+etl dynamo/my-table output.json --source_region=us-east-1
+```
+
+Copy a DynamoDB table to another region:
+```
+etl dynamo/src-table dynamo/dst-table --source_region=us-east-1 --target_region=eu-west-1
+```
+
+Load a CSV into DynamoDB (batch mode — strongly recommended for write throughput):
+```
+etl data.csv dynamo/my-table --target_region=us-east-1 --collect=25
+```
+Without `--collect`, each record is written individually (`PutItem`). With `--collect=25`, records are batched into `BatchWriteItem` requests of up to 25 items — DynamoDB's maximum — which is significantly faster for bulk loads.
 
 Filter, project and limit:
 ```

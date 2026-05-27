@@ -43,5 +43,10 @@ services:
     volumes:
       - ./locals3root:/containers3root
 
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    ports: ['8000:8000']
+    command: ['-jar', 'DynamoDBLocal.jar', '-inMemory', '-sharedDb']
+
 volumes:
   mysql-data:
