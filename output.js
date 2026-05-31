@@ -144,7 +144,9 @@ module.exports = async function(obj, argv) {
         // If the transform should be chained, we chain instead of map
         if (transform.chain) {
           const chain = typeof transform.chain == 'function' ? transform.chain : transform;
-          stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
+          stream = types.isGeneratorFunction(chain)
+            ? Readable.from(chain(stream, argv))
+            : stream.pipe(etl.chain(incoming => chain(incoming, argv)));
           continue;
         }
 
@@ -195,7 +197,9 @@ module.exports = async function(obj, argv) {
       chain = await safeRequire(path.resolve('.', argv.chain));
       chain = chain.chain || chain;
     }
-    stream = stream.pipe(etl.chain(incoming => chain(incoming, argv)));
+    stream = types.isGeneratorFunction(chain)
+      ? Readable.from(chain(stream, argv))
+      : stream.pipe(etl.chain(incoming => chain(incoming, argv)));
   }
 
   if (obj[type] && typeof obj[type].transform === 'function')

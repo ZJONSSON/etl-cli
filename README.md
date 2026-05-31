@@ -52,7 +52,7 @@ Both source and target accept a path-like syntax that gets parsed into `source_*
 * --prescan=x: number of rows to prescan for csv header discovery (default 100)
 * --transform=x: javascript transform between source and target (inline arrow function, or comma-separated module paths)
 * --transform_concurrency=x: concurrency for transforms
-* --chain=x: javascript chain between source and target (operates on the upstream stream rather than per record)
+* --chain=x: javascript chain between source and target (operates on the upstream stream rather than per record); may be an async generator `async function* (incoming, argv)` receiving the full upstream stream
 * --filter=x: inline filter function, e.g. `--filter="d => d.country == 'US'"`
 * --select=a,b,c: keep only these top-level keys
 * --remove=a,b: drop these top-level keys
@@ -331,7 +331,7 @@ etl input.csv output.json --transform=./transforms/normalize.js
 The module may export:
 * a function `(d, argv) => d` - applied with `etl.map` at `--transform_concurrency`
 * `{ transform, catch, flush, finalize }` - a customized `etl.map`; see `finalize` below
-* `{ chain }` (or a function with `.chain = true`) - applied with `etl.chain` instead of `etl.map`
+* `{ chain }` (or a function with `.chain = true`) - applied with `etl.chain` instead of `etl.map`; if `chain` is an async generator `async function* (incoming, argv)`, the entire upstream stream is passed as `incoming` and the result is consumed via `Readable.from`
 * an async generator `async function* (d, argv) { yield ...; }` - applied with `stream.flatMap` at `--transform_concurrency`.   Each upstream record can yield zero or many downstream records, e.g. fanning out a parent record into its children.  Note: with `--transform_concurrency > 1` output order across records is not guaranteed.
 
 Example async-generator transform (fan-out):
