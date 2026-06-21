@@ -8,7 +8,7 @@ module.exports = function(stream, argv) {
   function getHeaders(d, p) {
     if (d && typeof d === 'object')
       return Object.keys(d).reduce( (p, key) => {
-        if (d[key] !== undefined && d[key] !== null) {
+        if (d[key] !== undefined && d[key] !== null && typeof d[key] !== 'function') {
           p[key] = getHeaders(d[key], p[key]);
         }
         return p;
@@ -23,10 +23,12 @@ module.exports = function(stream, argv) {
     prefix = prefix || '';
     Object.keys(headers).forEach(key => {
       const header = headers[key];
+      const value = d && d[key];
+      if (typeof value === 'function') return;
       if (typeof header === 'object')
-        flattenData(header, d[key] || {}, obj, prefix + key + separator);
+        flattenData(header, value || {}, obj, prefix + key + separator);
       else
-        obj[prefix + key] = d[key];
+        obj[prefix + key] = value;
     });
     return obj;
   }
