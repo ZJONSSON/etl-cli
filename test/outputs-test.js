@@ -1,4 +1,6 @@
 const tap = require('tap');
+const etl = require('etl');
+const output = require('../output');
 const { cli } = require('./util');
 const { path, requireAll } = require('./util');
 const { join } = require('path');
@@ -33,6 +35,28 @@ tap.test('outputs', async t => {
     await cli(cmd);
     const data = readFileSync(tmpDir + 'test.csv', 'utf8');
     t.same(data, 'a,b,c\n1,2,3\n4,5,6\n');
+  });
+
+  t.test('csv omits function columns', async t => {
+    const csvFile = join(tmpDir, 'functions.csv');
+    await output({
+      stream: etl.toStream([{
+        a: '1',
+        body: () => 'skip',
+        getClient: () => 'skip',
+        nested: {
+          b: '2',
+          fn: () => 'skip'
+        }
+      }])
+    }, {
+      target: csvFile,
+      silent: true,
+      throw: true
+    });
+
+    const data = readFileSync(csvFile, 'utf8');
+    t.same(data, 'a,nested>b\n1,2\n');
   });
 
   t.test('files', async t => {
