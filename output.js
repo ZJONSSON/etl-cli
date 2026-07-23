@@ -82,8 +82,9 @@ module.exports = async function(obj, argv) {
     }, argv.report_interval || 1000);
   }
 
-  const m = /\.(json|csv|parquet|raw)/.exec(dest);
-  argv.target_type = argv.target_type || (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
+  const raw = /\.(raw|txt|md)/.test(dest);
+  const m = /\.(json|csv|parquet)/.exec(dest);
+  argv.target_type = argv.target_type || (raw && 'raw') || (m && m[1]) || (dest && dest.toLowerCase()) || 'screen';
   const type = argv.target_type;
 
   if (!argv.silent) {
