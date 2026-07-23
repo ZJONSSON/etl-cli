@@ -31,6 +31,7 @@ target can be any of the following:
 * .json
 * .csv
 * .parquet (requires `--schema=schemafile.json` with a `parquet` property)
+* .raw, .txt, .md - raw file (records written straight to the file as-is, so `--transform` them to strings/buffers first)
 * directory of files (`files/<dir>`, writes each `{ filename, body }` record to disk)
 * sftp directory (`sftp/<path>`, uploads each `{ filename, body }` record over sftp)
 * s3 link to either .json or .csv file (single object), or `s3files/<bucket>/<prefix>` for multiple objects

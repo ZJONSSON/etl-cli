@@ -71,4 +71,27 @@ tap.test('outputs', async t => {
     t.same(data, 'This is file test3.json');
   });
 
+  const rawTransform = '"d => d.a + String.fromCharCode(10)"';
+
+  t.test('raw', async t => {
+    const cmd = `etl ${__dirname}/support/test.csv ${tmpDir}test.raw --transform ${rawTransform}`;
+    const res = await cli(cmd);
+    t.same(res.argv.target_type, 'raw');
+    t.same(readFileSync(tmpDir + 'test.raw', 'utf8'), '1\n4\n');
+  });
+
+  t.test('txt is treated as raw', async t => {
+    const cmd = `etl ${__dirname}/support/test.csv ${tmpDir}test.txt --transform ${rawTransform}`;
+    const res = await cli(cmd);
+    t.same(res.argv.target_type, 'raw');
+    t.same(readFileSync(tmpDir + 'test.txt', 'utf8'), '1\n4\n');
+  });
+
+  t.test('md is treated as raw', async t => {
+    const cmd = `etl ${__dirname}/support/test.csv ${tmpDir}test.md --transform ${rawTransform}`;
+    const res = await cli(cmd);
+    t.same(res.argv.target_type, 'raw');
+    t.same(readFileSync(tmpDir + 'test.md', 'utf8'), '1\n4\n');
+  });
+
 });
