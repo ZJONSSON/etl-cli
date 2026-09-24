@@ -1,6 +1,6 @@
 {
   "name": "etl-cli",
-  "version": "0.1.38",
+  "version": "0.1.37",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -43,7 +43,6 @@
     "pegjs": "^0.10.0",
     "pg": "^8.11.3",
     "pg-query-stream": "^2.0.0",
-    "recursive-readdir": "^2.2.2",
     "request": "^2.88.0",
     "s3-upload-stream": "~1.0.7",
     "split-string": "^6.1.0",
