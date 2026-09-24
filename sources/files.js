@@ -1,8 +1,41 @@
 const etl = require('etl');
-const recursive = require('recursive-readdir');
+const { promises: fs } = require('fs');
+const path = require('path');
+const { Readable } = require('stream');
 const jsonSource = require('./json');
 const csvSource = require('./csv');
 const getFile = require('./getFile');
+
+// A file can disappear, or be a dangling symlink, while a directory is being
+// scanned. Ignore that entry, but still fail for a missing source directory
+// and for all other filesystem errors.
+async function* recursive(source_dir, root = true) {
+  let filenames;
+  try {
+    filenames = await fs.readdir(source_dir);
+  } catch (e) {
+    if (!root && e.code === 'ENOENT') return;
+    throw e;
+  }
+
+  for (const filename of filenames) {
+    const file = path.join(source_dir, filename);
+    let stats;
+
+    try {
+      stats = await fs.stat(file);
+    } catch (e) {
+      if (e.code === 'ENOENT') continue;
+      throw e;
+    }
+
+    if (stats.isDirectory()) {
+      yield* recursive(file, false);
+    } else {
+      yield file;
+    }
+  }
+}
 
 module.exports = function(argv) {
 
@@ -11,7 +44,7 @@ module.exports = function(argv) {
   const reFilter = RegExp(argv['filter-files']);
 
   return {
-    stream: () => etl.toStream(() => recursive(source_dir))
+    stream: () => Readable.from(recursive(source_dir))
       .pipe(etl.map(filename => {
         if (reFilter.exec(filename)) return {
           filename: filename.replace(source_dir + '/', ''),

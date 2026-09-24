@@ -1,10 +1,47 @@
 const etl = require('etl');
 const { createWriteStream, rename, utimes, stat, ensureDir } = require('fs-extra');
-const recursive = require('recursive-readdir');
+const { promises: fs } = require('fs');
 
 const path = require('path');
 const os = require('os');
 const bodyStream = require('./lib/bodyStream');
+
+// A file can disappear, or be a dangling symlink, while a directory is being
+// scanned. Ignore that entry, but still fail for a missing target directory
+// and for all other filesystem errors.
+async function* walk(source_dir, root = true) {
+  let filenames;
+  try {
+    filenames = await fs.readdir(source_dir);
+  } catch (e) {
+    if (!root && e.code === 'ENOENT') return;
+    throw e;
+  }
+
+  for (const filename of filenames) {
+    const file = path.join(source_dir, filename);
+    let stats;
+
+    try {
+      stats = await fs.stat(file);
+    } catch (e) {
+      if (e.code === 'ENOENT') continue;
+      throw e;
+    }
+
+    if (stats.isDirectory()) {
+      yield* walk(file, false);
+    } else {
+      yield file;
+    }
+  }
+}
+
+async function recursive(source_dir) {
+  const files = [];
+  for await (const file of walk(source_dir)) files.push(file);
+  return files;
+}
 
 module.exports = async function(stream, argv) {
   const filter_files = argv.filter_files && new RegExp(argv.filter_files);
