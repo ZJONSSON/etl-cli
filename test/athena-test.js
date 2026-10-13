@@ -33,7 +33,7 @@ app.use((req, res) => {
       }
     });
   } else if (req.path === '/test.results/results') {
-    res.end('a,b,c\n1,2,"[{d=3,e=4,f=[{e=5},{f=6}]}]"');
+    res.end('a,b,c,d,e\n1,2,"[{d=3,e=4,f=[{e=5},{f=6}]}]","{""name"":""sample"",""enabled"":true}","[1,{""nested"":""value""}]"');
   }
 
 });
@@ -44,6 +44,6 @@ tap.test('athena', async t => {
   const cmd = `etl athena/test/test test --source_endpoint="http://localhost:3000"  --source_forcePathStyle=true`;
   const res = await cli(cmd);
   console.log(JSON.stringify(res));
-  t.same(res, { "Σ_in":1, "Σ_out":1, "data":[{ "a":"1", "b":"2", "c":[{ "d":3, "e":4, "f":[{ "e":5 }, { "f":6 }] }] }] });
+  t.same(res, { "Σ_in":1, "Σ_out":1, "data":[{ "a":"1", "b":"2", "c":[{ "d":3, "e":4, "f":[{ "e":5 }, { "f":6 }] }], "d":{"name":"sample","enabled":true}, "e":[1,{"nested":"value"}] }] });
   server.close();
 });

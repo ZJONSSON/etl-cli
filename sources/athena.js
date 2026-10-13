@@ -60,11 +60,17 @@ module.exports = argv => {
               .pipe(etl.map(d => {
                 Object.keys(d).forEach(key => {
                   // Try decoding structured output
-                  if (d[key][0] == '[' || d[key][0] == '{') {
+                  if (typeof d[key] === 'string' && (d[key][0] == '[' || d[key][0] == '{')) {
+                    const value = d[key];
                     try {
-                      d[key] = athenaParser.parse(d[key]);
+                      d[key] = athenaParser.parse(value);
                     } catch(_e) {
-                      //silently ignore
+                      // Try JSON below if Athena parsing fails.
+                    }
+                    try {
+                      d[key] = JSON.parse(value);
+                    } catch(_e) {
+                      // Keep the Athena parse result when the input is not JSON.
                     }
                   }
                 });
