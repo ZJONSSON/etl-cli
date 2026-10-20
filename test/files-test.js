@@ -180,5 +180,24 @@ module.exports = async function(d) {
     t.same(outputData.items, ['a', 'b', 'c'], 'items array preserved');
   });
 
+  t.test('appending to files with target_file_append', async () => {
+    const appendDir = path.resolve(tmpDir, 'append-test');
+    await fs.promises.mkdir(appendDir, { recursive: true });
+
+    // Create initial file with one line
+    const logFile = path.resolve(appendDir, 'fileB.txt');
+    await fs.promises.writeFile(logFile, 'Initial Line\n');
+
+    // Append files from testfiles directory
+    const cmd = `etl files/${__dirname}/support/testfiles files/${appendDir} --target_file_append=true`;
+    const res = await cli(cmd);
+    t.same(res, { 'Σ_in': 2, 'Σ_out': 2 });
+
+    // Verify fileB.txt was appended to
+    const content = await fs.promises.readFile(logFile, 'utf8');
+    t.ok(content.startsWith('Initial Line\n'), 'original content preserved');
+    t.ok(content.includes('This is file B'), 'new content appended');
+  });
+
 
 });
