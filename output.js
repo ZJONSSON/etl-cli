@@ -106,8 +106,15 @@ module.exports = async function(obj, argv) {
     if (d === undefined || d === null) return;
     Σ_in++;
     if (d.body) {
+      // If the input file is gzipped, mark it and strip .gz extension
+      if (d.filename && /\.gz$/i.test(d.filename)) {
+        d._isGzipped = true;
+        d.filename = d.filename.replace(/\.gz$/i, '');
+      }
       d.buffer = async function() {
-        const stream = await bodyStream(d, argv);
+        // For reading, never apply target_gzip compression
+        const readArgv = { ...argv, target_gzip: false };
+        const stream = await bodyStream(d, readArgv);
         return Buffer.concat(await stream.toArray());
       };
       d.json = async function() {

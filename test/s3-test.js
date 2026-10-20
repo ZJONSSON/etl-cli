@@ -89,8 +89,9 @@ tap.test('s3files', async t => {
     const cmd = `etl s3://${Bucket}/test/gzip test --silent --source_endpoint=http://localhost:9090 --source_forcePathStyle=true`;
     const res = await cli(cmd);
     const buffer = await res.data[0].buffer();
-    const text = require('zlib').gunzipSync(buffer).toString();
-    t.same( res.data[0].filename, 'fileB.txt.gz');
+    // .buffer() now automatically decompresses .gz files and strips .gz extension
+    const text = buffer.toString();
+    t.same( res.data[0].filename, 'fileB.txt');
     t.same( text, 'This is file B');
   });
 
