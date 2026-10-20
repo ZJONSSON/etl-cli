@@ -119,10 +119,84 @@ tap.test('files', async t => {
     console.log(tmpDir);
   });
 
-  t.only('writing gzip bodies that are either string, readable, async string or async readable', async () => {
+  t.test('writing gzip bodies that are either string, readable, async string or async readable', async () => {
     const cmd = `etl ${__dirname}/support/bodies.js files/${tmpDir}/testfiles/ --target_gzip=true`;
     const res = await cli(cmd);
     t.same(res, { 'Σ_in': 10, 'Σ_out': 8, 'Σ_skipped': 2 });
+  });
+
+  t.test('reading .gz file, transforming, and writing as .gz', async () => {
+    const zlib = require('zlib');
+
+    // Create a gzipped JSON input file
+    const inputData = { original: true, value: 100, items: ['a', 'b', 'c'] };
+    const gzipInputDir = path.resolve(tmpDir, 'gzip-input');
+    await fs.promises.mkdir(gzipInputDir, { recursive: true });
+    const inputFile = path.resolve(gzipInputDir, 'data.json.gz');
+    await fs.promises.writeFile(inputFile, zlib.gzipSync(JSON.stringify(inputData)));
+
+    // Create transform that adds random data
+    const transformFile = path.resolve(tmpDir, 'add-random.js');
+    await fs.promises.writeFile(transformFile, `
+module.exports = async function(d) {
+  const data = await d.json();
+  data.transformed = true;
+  data.random = Math.random();
+  data.timestamp = Date.now();
+  return {
+    filename: d.filename,
+    body: JSON.stringify(data)
+  };
+};
+`);
+
+    // Run ETL: .gz input → transform → .gz output
+    const gzipOutputDir = path.resolve(tmpDir, 'gzip-output');
+    await fs.promises.mkdir(gzipOutputDir, { recursive: true });
+    const cmd = `etl files/${gzipInputDir} files/${gzipOutputDir} --transform=${transformFile} --target_gzip=true`;
+    const res = await cli(cmd);
+
+    t.same(res, { 'Σ_in': 1, 'Σ_out': 1 });
+
+    // Verify output file exists and is gzipped
+    const outputFile = path.resolve(gzipOutputDir, 'data.json.gz');
+    t.ok(fs.existsSync(outputFile), 'output file exists');
+
+    const outputBuffer = fs.readFileSync(outputFile);
+
+    // Check gzip magic bytes
+    t.same(outputBuffer[0], 0x1f, 'first byte is gzip magic number');
+    t.same(outputBuffer[1], 0x8b, 'second byte is gzip magic number');
+
+    // Decompress and verify transformation
+    const decompressed = zlib.gunzipSync(outputBuffer).toString();
+    const outputData = JSON.parse(decompressed);
+
+    t.same(outputData.original, true, 'original field preserved');
+    t.same(outputData.value, 100, 'value field preserved');
+    t.same(outputData.transformed, true, 'transformed flag added');
+    t.ok(typeof outputData.random === 'number', 'random field is a number');
+    t.ok(typeof outputData.timestamp === 'number', 'timestamp field is a number');
+    t.same(outputData.items, ['a', 'b', 'c'], 'items array preserved');
+  });
+
+  t.test('appending to files with target_file_append', async () => {
+    const appendDir = path.resolve(tmpDir, 'append-test');
+    await fs.promises.mkdir(appendDir, { recursive: true });
+
+    // Create initial file with one line
+    const logFile = path.resolve(appendDir, 'fileB.txt');
+    await fs.promises.writeFile(logFile, 'Initial Line\n');
+
+    // Append files from testfiles directory
+    const cmd = `etl files/${__dirname}/support/testfiles files/${appendDir} --target_file_append=true`;
+    const res = await cli(cmd);
+    t.same(res, { 'Σ_in': 2, 'Σ_out': 2 });
+
+    // Verify fileB.txt was appended to
+    const content = await fs.promises.readFile(logFile, 'utf8');
+    t.ok(content.startsWith('Initial Line\n'), 'original content preserved');
+    t.ok(content.includes('This is file B'), 'new content appended');
   });
 
 

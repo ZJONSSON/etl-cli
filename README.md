@@ -296,6 +296,10 @@ const result = await etl({
 console.log(result.Σ_in, result.Σ_out, result.data);
 ```
 
+### athena
+
+Columns that look like arrays or maps (the value starts with `[` or `{`) are decoded automatically.  Athena's own array/map syntax is attempted first, and valid JSON takes precedence over it; a value that is neither is left as the original string.
+
 ### files / s3files / sftp
 If the records being streamed contain `filename` and a `body`, the individual bodies can be saved to disk (using `files` target), to s3 (using `s3files` target) or to a remote sftp directory (using `sftp` target).   Records with a `body` also get two convenience methods added automatically:
 * `await d.buffer()` — reads the body and returns a `Buffer`
@@ -311,9 +315,13 @@ By default `files`, `s3files` and `sftp` will only save the file if the filename
 
 Overwrite can be enforced by specifying `--target_overwrite=true`
 
+The `files` target also supports `--target_file_append=true`, which appends each body to the target file instead of skipping it when it already exists.  The existence check (and the directory scan) is bypassed, and the body is written straight to the target rather than through a `.download` rename.  Concurrent writes to the same path are serialized with an in-process lock, so appends from a single run never interleave - note this does not coordinate with other processes writing the same file.
+
 Files can be optionally gzipped by specifying `--target_gzip=true`.  A `.gz` extension will be added to the filename and the content will be gzipped.
 
-`files` and `sftp` write to a `.download` suffix first and rename atomically on success - so a partial write will not be picked up by the next run's existence check.  `s3files` doesn't need this because s3 multipart uploads only commit the object on completion - a failed upload simply never materializes.   For `files` the source `mtime` is preserved when present.
+Conversely, a source file whose `filename` ends in `.gz` is decompressed transparently: the `.gz` is dropped from `filename` and `await d.buffer()` / `await d.json()` return the uncompressed content, so transforms can read a `.json.gz` directly.  Combining a `.gz` source with `--target_gzip=true` re-compresses on the way out and restores the `.gz` extension.
+
+`files` (unless appending) and `sftp` write to a `.download` suffix first and rename atomically on success - so a partial write will not be picked up by the next run's existence check.  `s3files` doesn't need this because s3 multipart uploads only commit the object on completion - a failed upload simply never materializes.   For `files` the source `mtime` is preserved when present.
 
 Instead of specifying s3files source or target you can also use a full s3 url, i.e. `s3://bucket/path/to/file`
 

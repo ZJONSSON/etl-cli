@@ -1,4 +1,5 @@
 const { Readable } = require("stream");
+const zlib = require("zlib");
 
 module.exports = async (d, argv) => {
   let body = await (typeof d.body === 'function' ? d.body(true) : d.body);
@@ -14,8 +15,15 @@ module.exports = async (d, argv) => {
     }
     body = Readable.from([].concat(body));
   }
+
+  // If source file was gzipped (marked by _isGzipped flag), decompress it
+  if (d._isGzipped) {
+    body = body.pipe(zlib.createGunzip());
+  }
+
+  // If target should be gzipped, compress it
   if (argv.target_gzip) {
-    body = body.pipe(require('zlib').createGzip());
+    body = body.pipe(zlib.createGzip());
   }
   return body;
 };

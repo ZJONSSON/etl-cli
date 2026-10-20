@@ -6,6 +6,9 @@ const path = require('path');
 const os = require('os');
 const bodyStream = require('./lib/bodyStream');
 
+// In-flight writes, keyed by target path.
+const locks = new Map();
+
 // A file can disappear, or be a dangling symlink, while a directory is being
 // scanned. Ignore that entry, but still fail for a missing target directory
 // and for all other filesystem errors.
@@ -54,7 +57,7 @@ module.exports = async function(stream, argv) {
   let files = new Set([]);
   argv.target_files_scanned = false;
 
-  if (!argv.target_overwrite && !argv.target_skip_scan) {
+  if (!argv.target_overwrite && !argv.target_skip_scan && !argv.target_file_append) {
     if (argv.target_await_scan) {
       files = new Set(await recursive(target_dir));
       argv.target_files_scanned = true;
@@ -75,7 +78,7 @@ module.exports = async function(stream, argv) {
 
     const Key = path.join(target_dir, d.filename);
     let skip = files.has(Key);
-    if (!skip && !argv.target_files_scanned && !argv.target_overwrite) {
+    if (!skip && !argv.target_files_scanned && !argv.target_overwrite && !argv.target_file_append) {
       try {
         await stat(Key);
         skip = true;
@@ -93,13 +96,18 @@ module.exports = async function(stream, argv) {
     const Body = await bodyStream(d, argv);
 
     await ensureDir(path.dirname(Key));
-    const tmpKey = `${Key}.download`;
-    await new Promise( (resolve, reject) => {
+    const append = argv.target_file_append;
+    const tmpKey = append ? Key : `${Key}.download`;
+
+    // Writes to the same file must not interleave - wait out the one in flight
+    while (locks.has(Key)) await locks.get(Key).catch( () => {});
+
+    const writing = new Promise( (resolve, reject) => {
       Body
         .on('error', reject)
-        .pipe(createWriteStream(tmpKey))
+        .pipe(createWriteStream(tmpKey, { flags: append ? 'a' : 'w' }))
         .on('close', async () => {
-          await rename(tmpKey, Key);
+          if (!append) await rename(tmpKey, Key);
           if (d.timestamp) {
             const timestamp = new Date(+d.timestamp);
             if (!isNaN(+timestamp)) await utimes(Key, timestamp, timestamp);
@@ -107,7 +115,11 @@ module.exports = async function(stream, argv) {
           resolve();
         })
         .on('error', e => reject(e));
-    });
+    }).finally( () => locks.delete(Key));
+
+    locks.set(Key, writing);
+    await writing;
+
     return { Key, message: 'OK' };
 
   }, {
