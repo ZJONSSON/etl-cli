@@ -99,31 +99,27 @@ module.exports = async function(stream, argv) {
     const append = argv.target_file_append;
     const tmpKey = append ? Key : `${Key}.download`;
 
-    // Appends to the same file must not interleave. Claim the lock before
-    // touching the file, waiting out whoever holds it.
-    let release;
-    while (locks.has(Key)) await locks.get(Key);
-    locks.set(Key, new Promise(r => release = r));
+    // Writes to the same file must not interleave - wait out the one in flight
+    while (locks.has(Key)) await locks.get(Key).catch( () => {});
 
-    try {
-      await new Promise( (resolve, reject) => {
-        Body
-          .on('error', reject)
-          .pipe(createWriteStream(tmpKey, append ? { flags: 'a' } : {}))
-          .on('close', async () => {
-            if (!append) await rename(tmpKey, Key);
-            if (d.timestamp) {
-              const timestamp = new Date(+d.timestamp);
-              if (!isNaN(+timestamp)) await utimes(Key, timestamp, timestamp);
-            }
-            resolve();
-          })
-          .on('error', e => reject(e));
-      });
-    } finally {
-      locks.delete(Key);
-      release();
-    }
+    const writing = new Promise( (resolve, reject) => {
+      Body
+        .on('error', reject)
+        .pipe(createWriteStream(tmpKey, { flags: append ? 'a' : 'w' }))
+        .on('close', async () => {
+          if (!append) await rename(tmpKey, Key);
+          if (d.timestamp) {
+            const timestamp = new Date(+d.timestamp);
+            if (!isNaN(+timestamp)) await utimes(Key, timestamp, timestamp);
+          }
+          resolve();
+        })
+        .on('error', e => reject(e));
+    }).finally( () => locks.delete(Key));
+
+    locks.set(Key, writing);
+    await writing;
+
     return { Key, message: 'OK' };
 
   }, {
